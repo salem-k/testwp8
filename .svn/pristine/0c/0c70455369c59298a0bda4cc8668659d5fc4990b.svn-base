@@ -1,0 +1,37 @@
+<ion-view align-title="center" animation="slide-right-left">
+    <ion-content class="login">
+ 		<img class="img-header-login" src="img/logo-cbc.png" />
+ 		
+ 		<div class="sep-header"></div>
+        <h4 class="center">ME CONNECTER</h4>
+        <div class="login-page">
+            <div  class='formLogin'>
+                <form name="loginForm" ng-submit="signIn(email,password)">
+                    <span class="input-label"></span>
+                    <input type="email" ng-model="email" name="email" placeholder="E-mail"> <span class="input-label"></span>
+                    <input type="password" ng-model="password" name="password" placeholder="Mot de passe"><span class="input-label"></span>
+                    <div class="recreePassword">
+                        <div class="c80">
+                            <a class='link' href="http://www.buzcard.fr/recovery.aspx?email=">Recréer mon mot de passe</a>
+                        </div>
+                        <div class="c20">
+                            <input value="OK" type="submit" menu-close class="button button-light button-login">
+                        </div>
+                    </div>
+                </form>
+            </div>
+       
+        <div class="overflow">
+                <h4 class="activer-ma-buzcard">ACTIVER OU CREER MA BUZCARD <br> (valable 30 jours)</h4>
+            </div>
+            <div class="formActivate">
+                <form name="activateForm" ng-submit="activate(avtiveEmail)">
+                    <input type="text" ng-model="avtiveEmail" placeholder="E-mail" required="true" /><span class="input-label"></span>
+                    <div >
+                            <input type="submit" class="button button-light button-login"  menu-close value="Activer">
+                    </div>
+                </form>
+			</div>
+		</div>
+    </ion-content>
+</ion-view>

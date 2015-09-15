@@ -1,0 +1,19 @@
+<ion-view align-title="center" animation="slide-right-left">
+	<ion-content overflow-scroll="true" class="has-footer">
+		<div class="buzcard-content">
+			 <p class="center" style="font-size:16px;">Chacun de vos contacts peut vous<br/>rapporter 10&euro; de crédit sur Buzcard.fr !</p>
+			<p class="para">
+				Sans même avoir à leur demander de vous désigner comme parrain le jour où ils passeront commande...
+				Comment diable réalisons-nous ce parrainage sans rien lui demander ?<br><br>
+				<u>C'est tout simple :</u> <br><br>
+				<b>1.</b> Quand il passe commande de buzcards papier ou ultime, il renseigne nécessairement son mail/login sur le site<br><br>
+				<b>2.</b> La plateforme détecte alors si cette adresse mail existe dans les pages de contacts de nos utilisateurs<br><br>
+				<b>3.</b> Si vous êtes la personne qui la première lui a envoyé sa buzcard on-line, vous gagnez 10&euro; HT de crédit sur Buzcard.fr<br><br>
+				Donc, dès que vous atteindrez 4 filleuls, vous pourrez passer commande de 250 buzcards forever GRATUITEMENT.<br><br>
+				En atteignant 50&euro; de crédit, vous pourrez même opter pour l'envoi d'un chèque de 25&euro;...
+			</p>
+			
+			<a class="left" ui-sref="app.contactList" menu-close>Retour</a>
+		</div>
+    </ion-content>
+</ion-view>

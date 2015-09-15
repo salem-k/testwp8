@@ -1,0 +1,69 @@
+sudo npm install -g ionic
+(pour installer IONIC)
+
+ionic platforms remove ios
+ionic platforms remove android
+ionic platforms remove wp8
+
+ionic platforms add ios
+ionic platforms add android
+ionic platforms add wp8 (seullement pour les utilisateurs windows 8+)
+
+
+la liste des plugins utilisé dans l'application :
+com.ionic.keyboard 1.0.4 "Keyboard"
+com.phonegap.plugins.barcodescanner 2.0.1 "BarcodeScanner"
+cordova-plugin-camera 1.2.0 "Camera"
+cordova-plugin-console 1.0.1 "Console"
+cordova-plugin-device 1.0.1 "Device"
+cordova-plugin-file 2.1.0 "File"
+cordova-plugin-file-transfer 1.2.1 "File Transfer"
+cordova-plugin-inappbrowser 1.0.2-dev "InAppBrowser"
+cordova-plugin-splashscreen 2.1.0 "Splashscreen"
+cordova-plugin-whitelist 1.0.0 "StatusBarStatusBar"
+cordova-sqlite-storage 0.7.9 "Cordova sqlite storage plugin"
+org.apache.cordova.statusbar 0.1.10 "StatusBar"
+
+pour ajouter le plugins StatusBar par EXEMPLE :
+ionic plugin add org.apache.cordova.statusbar
+
+Ajouter dans platforms/ios/cordova/default.xml ces deux lignes
+	
+	<preference name="AutoHideSplashScreen" value="false" />
+	<preference name="ShowSplashScreenSpinner" value="false" />
+
+renommer index.html -> indexDEV.html	
+renommer indexPROD.html (qui fait appel aux fichiers .min.css & .min.js) -> index.html
+
+minify des JS et CSS :
+	installer uglify-js
+	sudo npm install uglify-js -g
+	installer uglifycss
+	sudo npm install uglifycss -g
+
+exécute la minification de tous les fichiers :
+./minify.sh
+
+
+ionic build
+
+ionic build --device ios (pour le build d'une version de test)
+
+/usr/bin/xcrun -sdk iphoneos PackageApplication "/Users/salemk/Documents/livraisonBuzcard/Buzcard/platforms/ios/build/device/Buzcard.app" -o "/Users/salemk/Documents/livraisonBuzcard/Buzcard/platforms/ios/build/device/Buzcard.ipa"
+
+
+
+emulate ios --target="iPhone-4s"
+	iPhone-4s, 8.0
+	iPhone-5, 8.0
+	iPhone-5s, 8.0
+	iPhone-6-Plus, 8.0
+	iPhone-6, 8.0
+	iPad-2, 8.0
+	iPad-Retina, 8.0
+	iPad-Air, 8.0
+	Resizable-iPhone, 8.0
+	Resizable-iPad, 8.0
+
+	
+

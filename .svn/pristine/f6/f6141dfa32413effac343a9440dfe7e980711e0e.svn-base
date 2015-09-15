@@ -1,0 +1,800 @@
+appContext.controller("ContactEditController", [
+    '$scope',
+    '$state',
+    '$filter',
+    'ContactsService',
+    'LoadingService',
+    '$ionicPlatform',
+    '$cordovaSQLite',
+    '$stateParams',
+    '$rootScope',
+    'cameraService',
+    '$ionicHistory',
+    'ConnectionService',
+    'SynchroServices',
+    '$cordovaKeyboard',
+    'MenuService',
+    '$ionicViewSwitcher',
+    function($scope, $state, $filter, ContactsService, LoadingService,
+            $ionicPlatform, $cordovaSQLite, $stateParams, $rootScope,
+            cameraService,$ionicHistory,ConnectionService,SynchroServices,$cordovaKeyboard,MenuService,$ionicViewSwitcher) {
+
+        $scope.showLast = false;
+        $scope.tmp=false;
+        $scope.isFocusable=false;
+        var tmpContact ={};
+        var db = null;
+      $ionicPlatform.ready(function() {
+
+
+        /**
+         * create/open DB
+         */
+        if (window.cordova) {
+          db = $cordovaSQLite.openDB("buzcard.db"); // device
+        } else {
+          db = window.openDatabase("buzcard.db", '1', 'my', 1024 * 1024 * 10); // browser
+        }
+        //sss
+        //$ionicHistory.clearCache();
+      });
+    
+      $scope.$on('$ionicView.beforeEnter', function( scopes, states ) {
+    	  getContact();
+      });
+      /**
+       * get infos contact by id
+       */
+      function getContact() {
+        // remplir select box
+        ContactsService.selectAllGroup(db, function(result) {
+          $scope.groups = new Array();
+          for (var i = 0; i < result.rows.length; i++) {
+            $scope.groups[i] = result.rows.item(i).name;
+          }
+          $scope.groups[$scope.groups.length] = "Nouveau Groupe";
+        });
+
+        ContactsService.getContactbyId(db, $stateParams.id, function(result) {
+        	if (result.rows.length > 0) {
+        		$rootScope.tmpContact = angular.copy(result.rows.item(0)); 
+                console.warn($rootScope.tmpContact);
+                tmpContact = angular.copy(result.rows.item(0)); 
+                $scope.contact = result.rows.item(0);
+                $scope.contact.last_name = removeSlashes(result.rows.item(0).last_name);
+                $scope.contact.first_name = removeSlashes(result.rows.item(0).first_name);
+                $scope.contact.company = removeSlashes(result.rows.item(0).company);
+                $scope.contact.list = removeSlashes(result.rows.item(0).list);
+                $scope.contact.comment = removeSlashes(result.rows.item(0).comment);
+                document.querySelector('#newGroupeName').value = removeSlashes(result.rows.item(0).list);
+                $rootScope.oldGroupName = removeSlashes(result.rows.item(0).list);
+                $scope.contact.lastsendemail =result.rows.item(0).lastsendemail;
+                if( result.rows.item(0).lastsendemail !="")
+              	  $scope.showLast = true;
+                
+               
+//                var idProfil = $rootScope.idProfil;
+//                cameraService.checkExistFile('dir'+idProfil, $scope.contact.id + '.jpg',function(url) {
+//              	  var isWindowsPhone = ionic.Platform.isWindowsPhone();
+//          		  if(isWindowsPhone){
+//          			  $scope.photoProfil = url; // "img/photo_top_title.jpg";
+//          		  }else{
+//          			  $scope.photoProfil = url+ '?' + new Date().getTime(); // "img/photo_top_title.jpg";  
+//          		  }
+//                         
+//                        });
+                $scope.photoProfil = result.rows.item(0).photofilelocation;
+               
+                
+             
+              //  $scope.btnRDV.value =  new Date(result.rows.item(0).rendez_vous * 1000);
+               console.log(result.rows.item(0).rendez_vous);
+              
+             // Use the picker object directly.
+             var picker = $('#dateX').pickadate('picker');
+             if(result.rows.item(0).rendez_vous && result.rows.item(0).rendez_vous !="NaN"){
+               $scope.contact.rendez_vous = $filter('date')(new Date(result.rows.item(0).rendez_vous * 1000), 'dd/MM/yyyy');
+               picker.set('select', new Date(result.rows.item(0).rendez_vous * 1000));
+               picker.set('view', new Date(result.rows.item(0).rendez_vous * 1000));
+               picker.set('highlight', new Date(result.rows.item(0).rendez_vous * 1000));
+               
+                if ($scope.contact.rendez_vous == '01/01/1900' || $scope.contact.rendez_vous == '01/01/1970') {
+
+                  $scope.contact.rendez_vous = '';
+                }
+             }else{
+            	 
+            	 $scope.contact.rendez_vous = '';
+             }
+                $scope.tmp=true;
+
+			} else {
+				$state.go('app.contactList');
+			}
+          
+        });
+        LoadingService.dismiss();
+      };
+     
+      /**
+       * click on button valider: update contact
+       */
+     $scope.updateRDV = function(){
+    	 
+     }
+      $scope.updateContact = function(contact) {
+       // var dateRDV = $('#dateX').val();
+    	  LoadingService.loading("Enregistrement du contact en cours...");
+    	
+    	  if( $('#dateX').val() == '' )
+    		  contact.rendez_vous = '';
+    	  else
+    		  contact.rendez_vous = $('#dateX').val();
+    	  
+        //cas de nouveau groupe & le champ est vide
+        if (document.querySelector('#newGroupeName').value =="" && $scope.contact.list =="Nouveau Groupe") {
+          LoadingService.error("Veuillez introduire un <br> nouveau nom du groupe","ContactEditController");
+        
+        //cas d'un groupe existant & le champ est vide
+        }else if (document.querySelector('#newGroupeName').value =="" && $scope.contact.list !="Nouveau Groupe" && $scope.contact.list !="" && $scope.contact.list !=null) {
+          LoadingService.error("Veuillez introduire un nom du groupe","ContactEditController");
+          
+         //tous les champs sont bien remplis 
+        }else {
+          
+          /** begin initialisation */
+          var contactObj = {};
+          for(var key in contact)
+            contactObj[key]=removeSlashes(contact[key]);
+          var contactId = contact.id ;
+          var oldName = contactObj.list;
+          var newName = document.querySelector('#newGroupeName').value;
+          contactObj.list = newName;
+          console.warn("mmmm");
+          console.warn(contactObj);
+          /******* end *******/
+          
+          try {
+            contactObj.rendez_vous = toUsFormat(contact.rendez_vous);
+            // cas d'un nouveau groupe
+            if ($scope.contact.list =="Nouveau Groupe" && !checkIfExist(newName,$scope.groups)){
+              ContactsService.updateContactInfo(db, contactObj, function() { //update contact local
+                ContactsService.insertIntoGroupTable(db,newName,function(){ //create new groupe local
+                  ContactsService.selectContactByGroupName(db,$rootScope.oldGroupName,function(result){
+                    //cas où l'ancien groupe sera vide
+                      if (result.rows.length ==0){
+                        ContactsService.deleteGroupByName(db,$rootScope.oldGroupName, function(result){
+                          
+                        });
+                      }
+                    });
+                });
+              });
+            //cas rename groupe
+            }else if(oldName != "Nouveau Groupe" && oldName != newName && newName !="" ) {
+              ContactsService.updateContactInfo(db,contactObj , function() {   //update contact local
+                ContactsService.editGroup(db,oldName,newName,function(result){ //edit groupe local
+                  ContactsService.renameContactGroup(db,oldName,newName,function(result){ 
+
+                    
+                  });
+                });
+              });
+            
+          //cas nom de groupe existe déjà
+          }else if($scope.contact.list =="Nouveau Groupe" && checkIfExist(newName,$scope.groups)){
+            LoadingService.error("Ce nom de groupe existe déjà","ContactEditController");
+            
+            // cas de modification de groupe
+          }else if(oldName !="Nouveau Groupe" && ((newName =="" && oldName == null) || (newName == oldName ))){
+            ContactsService.updateContactInfo(db,contactObj , function() {   //update contact local
+              ContactsService.selectContactByGroupName(db,$rootScope.oldGroupName,function(result){
+              //cas où l'ancien groupe sera vide
+                if (result.rows.length ==0){
+                  ContactsService.deleteGroupByName(db,$rootScope.oldGroupName, function(result){
+                    
+                  });
+                }
+              });
+            });
+          }
+          }catch (e) {
+            // TODO: handle exception
+          }
+          
+          //test de connection
+          ConnectionService.isConnected(db,function() {
+        	 
+        	  ContactsService.selectContactbyEmail(db,$scope.contact.email, function(contactFromDB){
+        		  console.log(JSON.stringify(contactFromDB));
+        		  contactId = Number(contactFromDB.rows.item(0).id);
+        		  console.log(typeof(contactId));
+                    //cas connecté
+                	
+                    //cas nouveau groupe
+                    if ($scope.contact.list =="Nouveau Groupe" && !checkIfExist(newName,$scope.groups)){
+                      
+                     /******************************\
+                      préparation de l'objet serveur 
+                     \******************************/
+                     var contactObjx = {};
+                     for (var key in tmpContact)
+                        if(contact[key] != tmpContact[key])
+                          contactObjx[key] =contact[key];
+                      contactObjx.list = newName;
+//                      delete contactObjx.rendez_vous;
+                      delete contactObjx.id;
+                      delete contactObjx.date;
+                      /******* end *******/
+                      if(!isEmpty(contactObjx)){
+                      ContactsService.updateContactServer(0, contactId, contactObjx,function(data){ // update contact server
+                        if (data.update.status =="done") {
+                          LoadingService.dismiss();
+//                          $ionicHistory.nextViewOptions({
+//                        	  disableBack: true
+//                        	});
+//                         $state.go("app.contactList");
+                          console.info($rootScope.tmpContact);
+                          if(!areTheSame($rootScope.tmpContact,contact) )
+                        	  MenuService.setLocalStorage('ReloadContactList',1);
+                          $ionicViewSwitcher.nextDirection("back");
+                          console.log(typeof(contactId));
+                          $state.go('app.contactShow', {id: contactId },{reload : true});
+                          
+                          //only for test
+//                          MenuService.setLocalStorage('ReloadContactList',1);$state.go('app.contactList');
+                        } else {
+                          LoadingService.error("Une erreur est survenue lors <br> de la synchronisation","ContactEditController");
+                        }
+                      },function(status){
+                        console.error(status);
+                        LoadingService.error("Une erreur réseau est survenue ","ContactEditController");
+                      });}
+                      else{
+                        LoadingService.dismiss();
+//                        $ionicHistory.nextViewOptions({
+//                      	  disableBack: true
+//                      	});
+//                      $state.go("app.contactList");
+                        console.info($rootScope.contactTmp);
+                        if(!areTheSame($rootScope.tmpContact,contact) )
+                        	  MenuService.setLocalStorage('ReloadContactList',1);
+                        $ionicViewSwitcher.nextDirection("back");
+                        console.log(typeof(contactId));
+                          $state.go('app.contactShow', {id: contactId },{reload : true});
+                        //only for test
+//                        MenuService.setLocalStorage('ReloadContactList',1);$state.go('app.contactList');
+                      }
+                      
+                    //cas rename groupe
+                    }else if(oldName != "Nouveau Groupe" && oldName != newName && newName !="" ) {
+                      ContactsService.updateGroupServer(oldName,newName, function(result){ //edit groupe server 
+                        
+                       /*******************************\
+                        préparation de l'objet serveur
+                       \*******************************/
+                       var contactObjx = {};
+                       for (var key in tmpContact)
+                          if(contact[key] != tmpContact[key])
+                            contactObjx[key] =contact[key];
+                       
+//                        delete contactObjx.rendez_vous;
+                        delete contactObjx.id;
+                        delete contactObjx.date;
+                        contactObjx.list = newName;
+                        /******* end *******/
+                        if(!isEmpty(contactObjx)){
+                        ContactsService.updateContactServer(0,contactId, contactObjx,function(data){ // update contact server
+                          if (data.update.status =="done") {
+                            LoadingService.dismiss();
+//                            $ionicHistory.nextViewOptions({
+//                          	  disableBack: true
+//                          	});
+//                          $state.go("app.contactList");
+                            console.info($rootScope.contactTmp);
+                            if(!areTheSame($rootScope.tmpContact,contact) )
+                          	  MenuService.setLocalStorage('ReloadContactList',1);
+                            $ionicViewSwitcher.nextDirection("back");
+                            console.log(typeof(contactId));
+                            $state.go('app.contactShow', {id: contactId },{reload : true});
+                            //only for test
+//                            MenuService.setLocalStorage('ReloadContactList',1);$state.go('app.contactList');
+                          } else {
+                            LoadingService.error("Une erreur est survenue lors <br> de la synchronisation","ContactEditController");
+                          }
+                        },function(status){
+                          console.error(status);
+                          LoadingService.error("Une erreur réseau est survenue ","ContactEditController");
+                        });}
+                        else{
+                          LoadingService.dismiss();
+//                          $ionicHistory.nextViewOptions({
+//                        	  disableBack: true
+//                        	});
+//                        $state.go("app.contactList");
+                          console.info($rootScope.contactTmp);
+                          if(!areTheSame($rootScope.tmpContact,contact) )
+                        	  MenuService.setLocalStorage('ReloadContactList',1);
+                          $ionicViewSwitcher.nextDirection("back");
+                          console.log(typeof(contactId));
+                          $state.go('app.contactShow', {id: contactId },{reload : true});
+                          //only for test
+//                          MenuService.setLocalStorage('ReloadContactList',1);$state.go('app.contactList');
+                        }
+                      });
+                      //cas nom de groupe existe déjà
+                    }else if($scope.contact.list =="Nouveau Groupe" && checkIfExist(newName,$scope.groups)){
+                      LoadingService.error("Ce nom de groupe existe déjà","ContactEditController");
+                      
+                      // cas de modification de groupe
+                    }else if(oldName !="Nouveau Groupe" && ((newName =="" && oldName == null) ||(newName == oldName ) )  ){
+                      
+                     /*******************************\
+                      préparation de l'objet serveur
+                     \*******************************/
+                     var contactObjx = {};
+                     for (var key in tmpContact)
+                        if(contact[key] != tmpContact[key])
+                          contactObjx[key] =contact[key];
+                     
+//                      delete contactObjx.rendez_vous;
+                      delete contactObjx.id;
+                      delete contactObjx.date;
+                      if(newName != oldName )
+                      contactObjx.list = newName;
+                      /******* end *******/
+                      console.warn(contactObjx);
+                      
+                      if(!isEmpty(contactObjx)){
+                      ContactsService.updateContactServer(0,contactId, contactObjx,function(data){ // update contact server
+                        if (data.update.status =="done") {
+                          LoadingService.dismiss();
+//                          $ionicHistory.nextViewOptions({
+//                        	  disableBack: true
+//                        	});
+//                        $state.go("app.contactList");
+                          console.info($rootScope.tmpContact);
+                          if(!areTheSame($rootScope.tmpContact,contact) )
+                        	  MenuService.setLocalStorage('ReloadContactList',1);
+                          $ionicViewSwitcher.nextDirection("back");
+                          console.log(typeof(contactId));
+                          $state.go('app.contactShow', {id: contactId },{reload : true});
+                          //only for test
+//                          MenuService.setLocalStorage('ReloadContactList',1);$state.go('app.contactList');
+                        } else {
+                          LoadingService.error("Une erreur est survenue lors <br> de la synchronisation","ContactEditController");
+                        }
+                      },function(status){
+                        console.error(status);
+                        LoadingService.error("Une erreur réseau est survenue ","ContactEditController");
+                    });}
+                      else{
+                    	  
+                        LoadingService.dismiss();
+//                        $ionicHistory.nextViewOptions({
+//                      	  disableBack: true
+//                      	});
+//                      $state.go("app.contactList");
+                        console.info($rootScope.tmpContact);
+                        console.info(contact);
+                        
+                        if(!areTheSame($rootScope.tmpContact,contact) )
+                      	  MenuService.setLocalStorage('ReloadContactList',1);
+                        $ionicViewSwitcher.nextDirection("back");
+                        console.log(typeof(contactId));
+                        $state.go('app.contactShow', {id: contactId },{reload : true});
+                        //only for test
+//                        MenuService.setLocalStorage('ReloadContactList',1);$state.go('app.contactList');
+                      }
+                    }
+                    
+          });  //*******
+                  }, function() {
+                    
+                  //cas non connecté
+                    if (contact.id.toString().length == 10) {
+//                      $state.go("app.contactList");
+                    	if(!areTheSame($rootScope.tmpContact,contact) )
+                      	  MenuService.setLocalStorage('ReloadContactList',1);
+                    	$ionicViewSwitcher.nextDirection("back");
+                    	 $state.go('app.contactShow', {id: contactId },{reload : true});
+                        //only for test
+//                        MenuService.setLocalStorage('ReloadContactList',1);$state.go('app.contactList');
+//                      $ionicHistory.nextViewOptions({
+//                        disableBack: true
+//                      });
+                      
+                    } else {
+                      LoadingService.loading("Enregistrement du contact en cours...");
+                                          
+                         /*******************************\
+                          préparation de l'objet serveur
+                         \*******************************/
+                          if (oldName == null)
+                            oldName="";
+                          
+                         var contactObjx = {};
+                         for (var key in tmpContact)
+                            if(contact[key] != tmpContact[key])
+                              contactObjx[key] =contact[key];
+                         
+//                          delete contactObjx.rendez_vous;
+                          delete contactObjx.id;
+                          delete contactObjx.date;
+                          
+                          contactObjx.list = newName;
+                          /******* end *******/
+                          //cas rename groupe //2 requete 
+                          if(oldName != "Nouveau Groupe" && oldName != newName && newName !="") {
+                            
+                            SynchroServices.insertRequest(db,"RENAMEGROUP",{newName:newName,oldName:oldName},function(result){
+                              if (!isEmpty(contactObjx)) {
+                            console.info("not emptyy");
+                                SynchroServices.insertRequest(db,"CONTACTEDIT",{id:$stateParams.id, contact:contactObjx},function(result){
+      
+                                  LoadingService.dismiss();
+//                                $state.go("app.contactList");
+                                  if(!areTheSame($rootScope.tmpContact,contact) )
+                                	  MenuService.setLocalStorage('ReloadContactList',1);
+                                  $ionicViewSwitcher.nextDirection("back");
+                                  $state.go('app.contactShow', {id: contactId },{reload : true});
+                                  //only for test
+//                                  MenuService.setLocalStorage('ReloadContactList',1);$state.go('app.contactList');
+//                                  $ionicHistory.nextViewOptions({
+//                                	  disableBack: true
+//                                	});
+                                });
+                              }else{
+                                LoadingService.dismiss();
+//                                $ionicHistory.nextViewOptions({
+//                              	  disableBack: true
+//                              	});
+//                              $state.go("app.contactList");
+                                if(!areTheSame($rootScope.tmpContact,contact) )
+                              	  MenuService.setLocalStorage('ReloadContactList',1);
+                                $ionicViewSwitcher.nextDirection("back");
+                                $state.go('app.contactShow', {id: contactId },{reload : true});
+                                //only for test
+//                                MenuService.setLocalStorage('ReloadContactList',1);$state.go('app.contactList');
+                              }
+                            });
+                          
+                          }else if(!isEmpty(contactObjx)){ 
+                            SynchroServices.insertRequest(db,"CONTACTEDIT",{id:$stateParams.id, contact:contactObjx},function(result){
+                              LoadingService.dismiss();
+//                              $ionicHistory.nextViewOptions({
+//                            	  disableBack: true
+//                            	});
+//                            $state.go("app.contactList");
+                              if(!areTheSame($rootScope.tmpContact,contact) )
+                            	  MenuService.setLocalStorage('ReloadContactList',1);
+                              $ionicViewSwitcher.nextDirection("back");
+                              $state.go('app.contactShow', {id: contactId },{reload : true});
+                              //only for test
+//                              MenuService.setLocalStorage('ReloadContactList',1);$state.go('app.contactList');
+                            });
+                          }else {
+                            LoadingService.dismiss();
+//                            $ionicHistory.nextViewOptions({
+//                          	  disableBack: true
+//                          	});
+//                          $state.go("app.contactList");
+                            if(!areTheSame($rootScope.tmpContact,contact) )
+                          	  MenuService.setLocalStorage('ReloadContactList',1);
+                            $ionicViewSwitcher.nextDirection("back");
+                            $state.go('app.contactShow', {id: contactId },{reload : true});
+                            //only for test
+//                            MenuService.setLocalStorage('ReloadContactList',1);$state.go('app.contactList');
+                          }
+                    }
+                    
+           });
+        }
+        
+
+        
+      };
+      /**
+       * click on button supprimer: delete contact
+       */
+      $scope.deleteContact = function() {
+//    	  alert('XXXXXX');
+        LoadingService.question("Voulez-vous vraiment supprimer ce contact ?",
+                $stateParams.id, "ContactEditController");
+      };
+
+      /**
+       * click on button Non (popup suppression)
+       */
+      $scope.no = function() {
+        LoadingService.dismiss();
+      };
+
+      /**
+       * click on button Yes (pop up suppression )
+       */
+      $scope.yes = function(params) {
+//    	  alert('YYYYY');
+        ContactsService.deleteContactLocal(db, params, function() {
+          ContactsService.selectContactByGroupName(db,$rootScope.oldGroupName,function(result){ 
+            //cas où l'ancien groupe sera vide
+            if (result.rows.length ==0){
+              ContactsService.deleteGroupByName(db,$rootScope.oldGroupName, function(result){
+                console.log("group is empty : deleted");
+              });
+            }
+          });
+        });
+
+        //test de connection
+        ConnectionService.isConnected(db,function() {
+          // cas connecté
+          // TODO FIXME il faut traiter le cas ou la session est expiré
+          LoadingService.loading("Suppression du contact en cours...");
+          
+          ContactsService.deleteContactServer(params,function(data){
+            
+            if (data.update.status =="done") {
+              LoadingService.dismiss();
+//            $state.go("app.contactList");
+              //only for test
+              MenuService.setLocalStorage('ReloadContactList',1);
+              $state.go('app.contactList');
+            } else {
+              LoadingService.error("Une erreur est survenue lors <br> de la synchronisation","ContactEditController");
+            }
+            
+          },function(status){
+            console.error(status);
+            LoadingService.error("Une erreur réseau est survenue ","ContactEditController");
+          });
+          
+        }, function() {
+          //cas non connecté
+          SynchroServices.insertRequest(db,"CONTACTDELETE",{id:$stateParams.id},function(){
+
+            LoadingService.dismiss();
+//            $ionicHistory.nextViewOptions({
+//          	  disableBack: true
+//          	});
+//          $state.go("app.contactList");
+            //only for test
+//            $state.go("app.contactList", {}, { reload: true,inherit: false,notify: true,cache:false });
+            MenuService.setLocalStorage('ReloadContactList',1);
+            $state.go('app.contactList');
+          });
+            
+        });
+      };
+      /**
+       * convert date to timeStamp
+       */
+      function toTimeStamp(myDate) {
+        myDate = myDate.split("-");
+        var newDate = myDate[1] + "/" + myDate[0] + "/" + myDate[2];
+        x = new Date(newDate).getTime() / 1000;
+        return x;
+
+      }
+      /**
+       * capture photo
+       */
+      $scope.getPhoto = function() {
+    	  var options = {
+    			  quality: 100,
+    		      destinationType: Camera.DestinationType.FILE_URI,
+    		      sourceType: Camera.PictureSourceType.CAMERA,
+    		      encodingType: Camera.EncodingType.JPEG,
+    		      targetWidth: 500,
+                  targetHeight: 500,
+                  correctOrientation: true,
+                  popoverOptions: CameraPopoverOptions
+    		    };
+
+        cameraService.getPicture(options).then(function(imageURI) {
+        	 LoadingService.loading("Chargement...");
+         // var idProfil = $rootScope.idProfil;
+          var isWindowsPhone = ionic.Platform.isWindowsPhone();
+          var fileName =$stateParams.id + '.jpg';
+          $scope.photoProfil = imageURI;
+          var imageURL =imageURI.substr(0, imageURI.lastIndexOf('?'));
+          if (imageURL =='') {
+           imageURL = imageURI;
+          }else{
+           imageURL = imageURI.substr(0, imageURI.lastIndexOf('?'));
+          }
+          cameraService.RenamePicture(fileName, imageURL, function(url) {
+        	   if (isWindowsPhone) {
+         		  $scope.photoProfil = url;
+         		  $scope.contact.photofilelocation= url;
+         		  
+         	  }else{
+         		  $scope.photoProfil = url + '?' + new Date().getTime();
+         		  $scope.contact.photofilelocation = url + '?' + new Date().getTime();
+         	  }
+        	
+           
+            
+            ContactsService.updateContactPhoto(db, $stateParams.id,url, function(){
+            ///mettre a jour le rootscope de list photo contact
+            ConnectionService.isConnected(db,function() {
+            	//cas ou il ya connexion 
+            	  ContactsService.uploadPhotoContact(url, $stateParams.id, function(){
+            		  LoadingService.dismiss();
+                  	console.log('uploaded CONTACTPHOTO');
+                  }, function(){
+                	  LoadingService.dismiss();
+                	  console.log('erreur upload photo contact');
+                  });
+            },function(){
+            	// cas pas de connexion 
+            	 SynchroServices.insertRequest(db, "CONTACTPHOTO", {id:$stateParams.id, path:url}, function() {
+            		 LoadingService.dismiss();
+            		 console.log('Request inserted CONTACTPHOTO');
+            });
+          
+         });
+            
+            });
+          });
+        }, function(err) {
+          console.error(err);
+        });
+      };
+      /**
+       * choose file from library
+       */
+      $scope.choseFile = function() {
+        var options = {
+          quality: 100,
+          destinationType: Camera.DestinationType.FILE_URI,
+          sourceType: Camera.PictureSourceType.PHOTOLIBRARY,
+          encodingType: Camera.EncodingType.JPEG,
+          targetWidth: 500,
+          targetHeight: 500,
+          correctOrientation: true,
+          popoverOptions: CameraPopoverOptions
+        };
+
+        cameraService.getPicture(options).then(function(imageURI) {
+        	 LoadingService.loading("Chargement...");
+        	  var isWindowsPhone = ionic.Platform.isWindowsPhone();
+              var fileName =$stateParams.id + '.jpg';
+              $scope.photoProfil = imageURI;
+              var imageURL =imageURI.substr(0, imageURI.lastIndexOf('?'));
+              if (imageURL =='') {
+               imageURL = imageURI;
+              }else{
+               imageURL = imageURI.substr(0, imageURI.lastIndexOf('?'));
+              }
+              cameraService.RenamePicture(fileName, imageURL, function(url) {
+            	   if (isWindowsPhone) {
+             		  $scope.photoProfil = url;
+             		  $scope.contact.photofilelocation= url;
+             		  
+             	  }else{
+             		  $scope.photoProfil = url + '?' + new Date().getTime();
+             		  $scope.contact.photofilelocation = url + '?' + new Date().getTime();
+             	  }
+            	
+               
+                
+        	  ContactsService.updateContactPhoto(db, $stateParams.id,$scope.photoProfil, function(){
+        		
+        	  ConnectionService.isConnected(db,function() {
+              	//cas ou il ya connexion 
+        		 
+              	  ContactsService.uploadPhotoContact(url, $stateParams.id, function(){
+              		LoadingService.dismiss();
+              		  console.log('uploaded CONTACTPHOTO');
+                    }, function(){
+                  	  console.log('erreur upload photo contact');
+                    });
+              },function(){
+              	// cas pas de connexion 
+              	 SynchroServices.insertRequest(db, "CONTACTPHOTO", {id:$stateParams.id, path:url}, function() {
+              		LoadingService.dismiss();
+              		 console.log('Request inserted CONTACTPHOTO');
+              });
+            
+           });
+        	  
+           
+          
+        	  });
+          });
+        }, function(err) {
+          console.error(err);
+        });
+
+      };
+      
+     
+      /**
+       * select box handler
+       */
+      $scope.changeHandler = function() {
+        if ( $scope.contact.list != "Nouveau Groupe") {
+          document.querySelector('#newGroupeName').value = $scope.contact.list;
+        }else{
+          $scope.isFocusable=true;
+          document.querySelector('#groupe-combo-editcontact').style.height = '80px';
+          document.querySelector('#newGroupeName').value = "";
+//          document.querySelector('#newGroupeName').focus();
+        }
+      };
+    
+      // to dismiss the PopUp
+      $scope.dismiss = function() {
+        LoadingService.dismiss();
+        
+      };
+      
+//      $scope.closeKeyboard = function(){
+//    	  $cordovaKeyboard.close();
+//      }
+//      
+    
+      $scope.keyPressed = function(keyEvent) {
+      	
+          if (keyEvent.keyCode == 13 || keyEvent.keyCode == KeyEvent.KEYCODE_BACK) {
+          	 
+            cordova.plugins.Keyboard.close();
+            
+          }
+      };
+      
+      function checkIfExist(string,array){  
+        if(string !="" && array.length>0){
+          var exist = false;
+         for (var int = 0; int < array.length; int++) {
+           if (array[int].toUpperCase() == string.toUpperCase()) 
+             exist =true;
+         } 
+         return exist;
+        }else return false;
+      }
+      
+      function isEmpty(value){
+        return Boolean(value && typeof value == 'object') && !Object.keys(value).length;
+      };
+      
+      function toUsFormat(dateTimeStamp){
+    	  if( !dateTimeStamp )
+    		  return '';
+    	var n =  new Date(dateTimeStamp.substr(6,4),parseInt(dateTimeStamp.substr(3,2))-1,dateTimeStamp.substr(0,2));
+    		//new Date(dateTimeStamp);
+  		var x = (n.getMonth() + 1) +"/" +  n.getDate() +"/" +  n.getFullYear();
+  		console.error(x);
+    	return (n.getMonth() + 1) +"/" +  n.getDate() +"/" +  n.getFullYear();
+      };
+      
+      
+      function areTheSame(obj1, obj2){
+    	  var d1 = new Date(obj1.rendez_vous * 1000);
+    	  var d2 = new Date(obj2.rendez_vous);
+    	  console.log(d1);
+    	  console.log(d2);
+    	  if(d1.getTime() != d2.getTime()){
+    		  console.log("d1 is not d2");
+    		  return false;
+    	  }
+    		  
+    	  else{
+    		  delete obj1.rendez_vous;
+    		  delete obj2.rendez_vous;
+    		  console.error(obj1);
+    		  if(JSON.stringify(obj1) === JSON.stringify(obj2)){
+    			  console.log("obj1 ==== D2");
+    			  return true;
+    		  }
+    			  
+    		  else{
+    			  console.log("d1 ==@##=== D2");
+    			  return false;
+    		  }
+    			 
+    	  }
+    	  
+      }
+    }]);

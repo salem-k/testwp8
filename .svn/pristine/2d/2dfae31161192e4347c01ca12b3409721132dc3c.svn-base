@@ -1,0 +1,56 @@
+appContext.controller("LoadingController", [
+    '$scope',
+    '$state',
+    'LoginService',
+    '$ionicPlatform',
+    '$cordovaSQLite',
+    'LoadingService',
+    '$location','$ionicHistory',
+    function($scope, $state, LoginService, $ionicPlatform, $cordovaSQLite, LoadingService,$location,$ionicHistory) {
+
+        var db = null;
+        $ionicPlatform.ready(function() {
+            /**
+             * create/open DB
+             */
+            if (window.cordova) {
+                db = $cordovaSQLite.openDB("buzcard.db"); // device
+            } else {
+                db = window.openDatabase("buzcard.db", '1', 'my', 1024 * 1024 * 10); // browser
+
+            }
+            
+            LoadingService.loading("Chargement...");
+            LoginService.selectCredentials(db, function(result) {
+            	if(result ==1){
+            		 LoadingService.dismiss();
+            		$state.go("app.login");  	
+            	}else{
+          		  LoadingService.dismiss();
+            		  if (result.rows.length > 0) {
+                          // redirection to the buzcard page
+                        //  $location.url("/app/buzcard");
+                    	 $ionicHistory.clearHistory();
+            	
+                            $state.go("app.buzcard");
+                         
+                      }else{
+                    	  LoadingService.dismiss();
+                          $state.go("app.login");  
+                      }	
+            	}
+           
+          });
+        });
+
+        
+        // to dismiss the PopUp
+        $scope.dismiss = function() {
+            LoadingService.dismiss();
+        };
+
+  
+
+       
+    }
+]);

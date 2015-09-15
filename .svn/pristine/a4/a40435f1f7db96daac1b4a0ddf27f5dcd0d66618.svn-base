@@ -1,0 +1,308 @@
+<ion-view align-title="center" animation="slide-right-left">
+    <ion-content scroll="true" class="has-footer">
+        <div class="list">
+            <div class="edit-vcard">
+                <div class="header-vcardedit hide-on-keyboard-open">
+                    <img id="profil" ng-src="{{photoProfil}}" src="img/photo_top_title.jpg">
+                </div>
+                <div class="capture-camera">
+                    <div class="row">
+                        <div class="col-80">
+                            <form name="formUpload" enctype="multipart/form-data">
+                                <div id="uploadImage">
+                                          <input type="button" class="chooseFile" value="CHOISIR UNE IMAGE" ng-click="choseFile()"/> 
+                                    <input  type="file" onclick="return false;" name="photo">
+                                </div>
+                            </form>
+                        </div>
+                       
+                        <div class="col-20">
+                            <a class="button camera-buz" ng-click="getPhoto()"></a>
+                        </div>
+                    </div>
+                </div>
+                <br>
+                
+                
+                <ion-item class="item-stable" ng-click="selectElement('Coordonnes',$event)">
+                    Coordonnées
+                    <i ng-class="isSelectedCordonnees ? 'ion-arrow-down-b' : 'ion-arrow-left-b'"   data-pack="default" data-tags=""></i>
+                </ion-item>
+                <ion-item class="item-accordion" ng-if="isSelectedCordonnees" class="ng-hide">
+
+                    <div class="row">
+                        <div class="col label"><span>Prénom</span></div>
+                        <div class="col col-75">
+                            <input type="text" ng-keypress="keyPressed($event)" ng-model="infos.first_name">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col label"><span>Nom</span></div>
+                        <div class="col col-75">
+                            <input ng-model="infos.last_name"  ng-keypress="keyPressed($event)" type="text">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col label"><span>Société</span></div>
+                        <div class="col col-75">
+                            <input ng-model="infos.company" ng-keypress="keyPressed($event)"  type="text">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col label"><span>Fonction</span></div>
+                        <div class="col col-75">
+                            <input ng-model="infos.position" ng-keypress="keyPressed($event)"  type="text">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col label"><span>Réseau(x)</span></div>
+                        <div class="col col-75">
+                            <input ng-model="infos.network" ng-keypress="keyPressed($event)" type="text">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col label"><span>Mobile</span></div>
+                        <div class="col col-75">
+                            <input ng-model="infos.mobile_1" ng-keypress="keyPressed($event)"  type="text">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col label"><span>Mobile 2</span></div>
+                        <div class="col col-75">
+                            <input ng-model="infos.mobile_2" ng-keypress="keyPressed($event)" type="text">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col label"><span>Tél. fixe</span></div>
+                        <div class="col col-75">
+                            <input ng-model="infos.landline_1" ng-keypress="keyPressed($event)" type="text">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col label"><span>Tél. perso</span></div>
+                        <div class="col col-75">
+                            <input ng-model="infos.landline_2" ng-keypress="keyPressed($event)" type="text">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col label"><span>Fax</span></div>
+                        <div class="col col-75">
+                            <input ng-model="infos.fax" ng-keypress="keyPressed($event)" type="text">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col label"><span>Skype</span></div>
+                        <div class="col col-75">
+                            <input ng-model="infos.skype" ng-keypress="keyPressed($event)" type="text">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col label"><span>Email</span></div>
+                        <div class="col col-75">
+                            <input ng-model="infos.email" ng-keypress="keyPressed($event)" type="email">
+                        </div>
+                    </div>
+                </ion-item>
+
+                <ion-item class="item-stable" ng-click="selectElement('Adresse',$event)">
+                    Adresse
+                    <i  ng-class="isSelectedAdresse ? 'ion-arrow-down-b' : 'ion-arrow-left-b'"   data-pack="default" data-tags=""></i>
+                </ion-item>
+                <ion-item class="item-accordion"  class="isSelectedAdresse" ng-if="isSelectedAdresse" class="ng-hide">
+                    <div class="row">
+                        <div class="col label"><span>Adresse</span></div>
+                        <div class="col col-75">
+                            <input type="text"  ng-keypress="keyPressed($event)" ng-model="infos.address_line_1">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col label"></div>
+                        <div class="col col-75">
+                            <input type="text" ng-keypress="keyPressed($event)" ng-model="infos.address_line_2">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col label"></div>
+                        <div class="col col-75">
+                            <input type="text" ng-keypress="keyPressed($event)" ng-model="infos.address_line_3">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col label"><span>CP</span></div>
+                        <div class="col col-75">
+                            <input type="text" ng-keypress="keyPressed($event)"  ng-model="infos.postal_code">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col label"><span>Ville</span></div>
+                        <div class="col col-75">
+                            <input type="text" ng-keypress="keyPressed($event)" ng-model="infos.city">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col label"><span>Pays</span></div>
+                        <div class="col col-75">
+                            <input type="text" ng-keypress="keyPressed($event)" ng-model="infos.country">
+                        </div>
+                    </div>
+
+                </ion-item>
+
+                <ion-item class="item-stable" ng-click="selectElement('rxSociaux',$event)">
+                    Réseaux sociaux
+                    <i ng-class="isSelectedrxSociaux ? 'ion-arrow-down-b' : 'ion-arrow-left-b'" data-pack="default" data-tags=""></i>
+                </ion-item>
+                <ion-item class="item-accordion" ng-if="isSelectedrxSociaux" class="ng-hide">
+                    <div class="row">
+                        <div class="col label"><img src="img/facebook.png" width="22px"></div>
+                        <div class="col col-75">
+                            <input type="text" ng-keypress="keyPressed($event)"  ng-model="infos.facebook" placeholder="URL de profil Facebook">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col label"><img src="img/twitter.png" width="22px"></div>
+                        <div class="col col-75">
+                            <input type="text" ng-keypress="keyPressed($event)" ng-model="infos.twitter" placeholder="URL de profil Twitter">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col label"><img src="img/pinterest.png" width="22px"></div>
+                        <div class="col col-75">
+                            <input type="text" ng-keypress="keyPressed($event)" ng-model="infos.pinterest" placeholder="URL de profil Pinterest">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col label"><img src="img/google-plus.png" width="22px"></div>
+                        <div class="col col-75">
+                            <input type="text" ng-keypress="keyPressed($event)" ng-model="infos.googleplus" placeholder="URL de profil GooglePlus">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col label"><img src="img/linkedin.png" width="22px"></div>
+                        <div class="col col-75">
+                            <input type="text" ng-keypress="keyPressed($event)" ng-model="infos.linkedin" placeholder="URL de profil Linkedin">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col label"><img src="img/viadeo.png" width="22px"></div>
+                        <div class="col col-75">
+                            <input type="text" ng-keypress="keyPressed($event)" ng-model="infos.viadeo" placeholder="URL de profil Viadeo">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col label"><img src="img/foursquare.png" width="22px"></div>
+                        <div class="col col-75">
+                            <input type="text" ng-keypress="keyPressed($event)" ng-model="infos.foursquare" placeholder="URL de profil Foursquare">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col label"><img src="img/delicious.png" width="22px"></div>
+                        <div class="col col-75">
+                            <input type="text" ng-keypress="keyPressed($event)" ng-model="infos.delicious" placeholder="URL de profil Delicious">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col label"><img src="img/myspace.png" width="22px"></div>
+                        <div class="col col-75">
+                            <input type="text" ng-keypress="keyPressed($event)" ng-model="infos.myspace" placeholder="URL de profil MySpace">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col label"><img src="img/rss.png" width="22px"></div>
+                        <div class="col col-75">
+                            <input type="text" ng-keypress="keyPressed($event)"  ng-model="infos.rss" placeholder="URL de profil RSS">
+                        </div>
+                    </div>
+
+                </ion-item>
+                <ion-item class="item-stable" ng-click="selectElement('link',$event)">
+                    Liens
+                    <i ng-class="isSelectedLink ? 'ion-arrow-down-b' : 'ion-arrow-left-b'"  data-pack="default" data-tags=""></i>
+                </ion-item>
+                <ion-item class="item-accordion" ng-if="isSelectedLink" class="ng-hide">
+
+                    <div class="row">
+                        <div class="col label"><span>Titre lien 1</span></div>
+                        <div class="col col-75">
+                            <input type="text" ng-keypress="keyPressed($event)"  ng-model="infos.link_title_1" placeholder="Nom de la page/video/...">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col label"><span>Lien 1</span></div>
+                        <div class="col col-75">
+                            <input type="text" ng-keypress="keyPressed($event)"  ng-model="infos.link_1" placeholder="http://www...">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col label"><span>Titre lien 2</span></div>
+                        <div class="col col-75">
+                            <input type="text" ng-keypress="keyPressed($event)" ng-model="infos.link_title_2" placeholder="Nom de la page/video/...">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col label"><span>Lien 2</span></div>
+                        <div class="col col-75">
+                            <input type="text" ng-keypress="keyPressed($event)" ng-model="infos.link_2" placeholder="http://www...">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col label"><span>Titre lien 3</span></div>
+                        <div class="col col-75">
+                            <input type="text" ng-keypress="keyPressed($event)"  ng-model="infos.link_title_3" placeholder="Nom de la page/video/...">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col label"><span>Lien 3</span></div>
+                        <div class="col col-75">
+                            <input type="text" ng-keypress="keyPressed($event)" ng-model="infos.link_3" placeholder="http://www...">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col label"><span>Titre lien 4</span></div>
+                        <div class="col col-75">
+                            <input type="text" ng-keypress="keyPressed($event)" ng-model="infos.link_title_4" placeholder="Nom de la page/video/...">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col label"><span>Lien 4</span></div>
+                        <div class="col col-75">
+                            <input type="text"  ng-keypress="keyPressed($event)" ng-model="infos.link_4" placeholder="http://www...">
+                        </div>
+                    </div>
+
+                </ion-item>
+                <ion-item class="item-stable" ng-click="selectElement('news',$event)">
+                    Actualités
+                    <i ng-class="isSelectedNews ? 'ion-arrow-down-b' : 'ion-arrow-left-b'"  data-pack="default" data-tags=""></i>
+                </ion-item>
+                <ion-item class="item-accordion" ng-if="isSelectedNews" class="ng-hide">
+                    <div class="row">
+                        <div class="col label"><span>Actu n°1</span></div>
+                        <div class="col col-75">
+                            <textarea ng-model="infos.news_1" ng-keypress="keyPressed($event)"  placeholder="Exemple : quelques phrases décrivant l&#39;activité de la société"></textarea>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col label"><span>Actu n°2</span></div>
+                        <div class="col col-75">
+                            <textarea ng-model="infos.news_2" ng-keypress="keyPressed($event)" placeholder="Exemple : un descriptif des offres tarifaires "></textarea>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col label"><span>Actu n°3</span></div>
+                        <div class="col col-75">
+                            <textarea ng-model="infos.news_3" ng-keypress="keyPressed($event)" placeholder="Exemple : quelques lignes évoquant l&#39;actualité business et media de la société"></textarea>
+                        </div>
+                    </div>
+                </ion-item>
+            </div>
+            <div class="send">
+                <button class="button button-full button-light btn-buzcard btn-bottom"  ng-click="updateProfile()" ng-style="{border : firstColor , backgroundColor: firstColor}"menu-close >
+                    VALIDER
+                </button>
+            </div>
+            
+        </div>
+         <br><br>
+    </ion-content>
+</ion-view>

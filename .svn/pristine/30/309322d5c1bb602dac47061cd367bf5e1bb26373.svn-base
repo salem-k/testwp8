@@ -1,0 +1,211 @@
+appContext.controller('BuzcardSendController', ['$scope', 'BuzcardService', 'LoadingService', '$filter', 'ContactsService', '$state', '$ionicPlatform', '$cordovaSQLite', '$ionicHistory','$rootScope','cameraService','ConnectionService','SynchroServices', function($scope, BuzcardService, LoadingService, $filter, ContactsService, $state, $ionicPlatform, $cordovaSQLite, $ionicHistory,$rootScope, cameraService,ConnectionService,SynchroServices) {
+
+    var db = null;
+    $ionicPlatform.ready(function() {
+
+        /**
+         * create/open DB
+         */
+        if (window.cordova) {
+            db = $cordovaSQLite.openDB("buzcard.db"); // device
+        } else {
+            db = window.openDatabase("buzcard.db", '1', 'my', 1024 * 1024 * 10); // browser
+        }
+        if (window.cordova && window.cordova.plugins.Keyboard) {
+            cordova.plugins.Keyboard.hideKeyboardAccessoryBar(true);
+          }
+          if (window.StatusBar) {
+            StatusBar.styleDefault();
+          }
+        $ionicHistory.clearHistory();
+    });
+
+    $scope.checkFollower = true;
+    $scope.dateRDV = new Date();
+    $scope.selectLang='fr';
+
+    $scope.sendBuzcard = function(email, selectLang, checkFollower, dateRDV) {
+
+        var checkFollowerValue = '';
+        if (checkFollower) {
+            checkFollowerValue = 'on';
+        } else {
+            checkFollowerValue = 'off';
+        }
+        var dateRDVValue ="";
+        if (dateRDV =='' || dateRDV  ==null) {
+          dateRDVValue = $filter('date')(new Date(), 'dd/MM/yyyy');
+        } else {
+          dateRDVValue = $filter('date')(dateRDV, 'dd/MM/yyyy');
+        }
+        console.log(dateRDVValue);
+        ConnectionService.isConnected(db,function() {
+            // cas connecté
+            // TODO FIXME il faut traiter le cas ou la session est expiré
+            LoadingService.loading("Envoi de buzcard ");
+            if (typeof email === 'undefined' || typeof email === null) {
+                LoadingService.error("Entrez l'adresse email de votre interlocuteur.", "BuzcardSendController");
+
+            } else if (!validateEmail(email)) {
+
+                LoadingService.error("L\'adresse email renseignée est invalide", "BuzcardSendController");
+            } else {
+                if (typeof selectLang === 'undefined' || typeof selectLang === null)
+                    selectLang = "fr";
+                LoadingService.loading("Envoi de buzcard ");
+                BuzcardService.sendBuzcardToServer(email, selectLang, checkFollowerValue, dateRDVValue, function() {
+                    //check if email exist in data base
+                    console.warn("send ok---");
+                    ContactsService.selectContactbyEmail(db, email, function(result) {
+                        LoadingService.loading('Chargement de la fiche en cours..');
+                        console.warn("select ok---");
+                        console.warn(result.rows.length);
+                        if (result.rows.length == 0) {
+                            //get contact from server
+                            ContactsService.getContactFromServerByEmail(email, function(data) {
+                              console.log(JSON.stringify(data));
+                                //insert contact into db
+                                ContactsService.insertIntoContactsTable(db, data.contacts.contact, function() {
+                                	  //save photo when get photo from camera buzcard send dans le cas d'un nouveau email
+                                    if ($scope.photoContact != null) {
+                                      
+                                        var idProfil = $rootScope.idProfil;
+                                        var fileName = idProfil + '/' + data.contacts.contact.id + '.jpg';
+
+                                        cameraService.RenamePicture(fileName, $scope.photoContact, function(url) {
+                                            //                                     ContactsService.uploadPhotoContact(url, $stateParams.id, function(){
+                                            //                                     	console.log('uploaded');
+                                            //                                     });
+                                        	LoadingService.confirm(email + " fait désormais partie de vos contacts. Vous pouvez compléter sa fiche et l\'affecter à un groupe", data.contacts.contact.id, "BuzcardSendController");
+
+                                        });
+                                    }else{
+                                    	LoadingService.confirm(email + " fait désormais partie de vos contacts. Vous pouvez compléter sa fiche et l\'affecter à un groupe", data.contacts.contact.id, "BuzcardSendController");
+
+                                    }
+
+                                   
+                                });
+
+                            }, function() {
+                                
+                            });
+                        } else {
+                          console.warn("id : -------------- "+result.rows.item(0).id);
+                          ContactsService.updateContactStatus(db,result.rows.item(0).id,checkFollowerValue,function(){
+                            //save photo camera dans le cas d'un email existant 
+                            if ($scope.photoContact != null) {
+                                
+                                var idProfil = $rootScope.idProfil;
+                                var fileName = idProfil + '/' + result.rows.item(0).id+ '.jpg';
+
+                                cameraService.RenamePicture(fileName, $scope.photoContact, function(url) {
+                                    //                                     ContactsService.uploadPhotoContact(url, $stateParams.id, function(){
+                                    //                                     	console.log('uploaded');
+                                    //                                     });
+                                	 LoadingService.confirm(email + " fait désormais partie de vos contacts. Vous pouvez compléter sa fiche et l\'affecter à un groupe ", result.rows.item(0).id, "BuzcardSendController");
+                                     
+                                });
+                            }else{
+                            	 LoadingService.confirm(email + " fait désormais partie de vos contacts. Vous pouvez compléter sa fiche et l\'affecter à un groupe ", result.rows.item(0).id, "BuzcardSendController");
+                                   	
+                            }
+                        });
+                            }
+
+                    });
+
+                }, function(thrownError) {
+                    LoadingService.error("Une erreur réseau est servenue", "BuzcardSendController");
+                });
+            }
+
+
+        }, function() {
+          LoadingService.loading("Votre fiche sera envoyée à votre interlocuteur dès que vous aurez du réseau");
+          //cas non connecté
+          var object = {
+                  email : email,
+                  selectLang : selectLang, 
+                  checkFollower : checkFollowerValue,
+                  dateRDV:dateRDVValue
+          };
+          SynchroServices.insertRequest(db,"BUZCARDSEND",object,function(){
+            ContactsService.selectContactbyEmail(db, email, function(result) {
+              if (result.rows.length == 0) {
+                //insert contact into db
+                var idTmp = parseInt(new Date().getTime()/1000);
+                
+                var status ="";
+                if (checkFollowerValue == "on") {
+                  status ="selected";
+                } else {
+                  status ="cant_be_selected";
+                }
+                var contactObj = {
+                        id : idTmp,
+                        email : email,
+                        date:  idTmp,
+                        rendez_vous : dateRDVValue,
+                        comment :"",
+                        last_name :"",
+                        first_name : "",
+                        phone_1 : "",
+                        phone_2 : "",
+                        company : "",
+                        list : "",
+                        status :status
+                };
+                ContactsService.insertIntoContactsTable(db,contactObj , function() {
+                  LoadingService.confirm(email + " fait désormais partie de vos contacts. Vous pouvez compléter sa fiche et l\'affecter à un groupe ", idTmp, "BuzcardSendController");
+                });
+              }else {
+                LoadingService.confirm(email + " fait désormais partie de vos contacts. Vous pouvez compléter sa fiche et l\'affecter à un groupe ", result.rows.item(0).id, "BuzcardSendController");
+              }
+            });
+          });
+        });
+
+
+    };
+
+    // to dismiss the PopUp
+    $scope.ok = function(id) {
+        LoadingService.dismiss();
+        
+        $state.go("app.contactEdit", {
+            'id': id
+        });
+    };
+    // to dismiss the PopUp
+    $scope.dismiss = function() {
+        LoadingService.dismiss();
+    };
+    //capture photo buzcard send 
+
+    $scope.getPhoto = function() {
+      LoadingService.loading("");
+        var options = {
+            quality: 50,
+            destinationType: Camera.DestinationType.FILE_URI,
+            sourceType: Camera.PictureSourceType.CAMERA,
+            encodingType: Camera.EncodingType.JPEG,
+            targetWidth: 100,
+            targetHeight: 100,
+            popoverOptions: CameraPopoverOptions
+        };
+        cameraService.getPicture(options).then(function(imageURI) {
+            // var fileName = $scope.infos.id + '/portrait.jpg';
+            $scope.photoContact = imageURI;
+            LoadingService.dismiss();
+        }, function(err) {
+            console.error(err);
+            LoadingService.dismiss();
+        });
+    };
+
+    function validateEmail(email) {
+        var re = /^([\w-]+(?:\.[\w-]+)*)@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$/i;
+        return re.test(email);
+    }
+}]);

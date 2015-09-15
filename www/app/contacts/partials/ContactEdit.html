@@ -1,0 +1,99 @@
+ <div class="naviguation" >
+		<a class="left"   href="#/app/contactShow/{{contact.id}}" nav-direction="back"   menu-close>Retour</a>
+		<a class="right" href="javascript:void(0)" ng-click="updateContact(contact)"    menu-close>Enregistrer</a>
+	</div>
+<ion-view align-title="center" animation="slide-right-left" hide-back-button="true">
+
+    <ion-content scroll="true" class="has-header ContactEditViews" autofocus>
+ 		<div class="list buzcard-content" style="padding-top:0px!important;margin-bottom:45px !important">
+		   <div class="contact-edit">
+		    <div class="header-contact">
+		       <img  id="profil2" src="img/photo_top_title.jpg" ng-src="{{photoProfil}}">
+		    </div>
+		      <div class="capture-camera">
+                    <div class="row">
+                        <div class="col-80">
+                            <form name="formUpload" enctype="multipart/form-data">
+                                <div id="uploadImage">
+                                          <input type="button" class="chooseFile" value="CHOISIR UNE IMAGE" ng-click="choseFile()"/>
+                                    <input  type="file" onclick="return false;" name="photo" />
+                                </div>
+                            </form>
+                        </div>
+                        <div class="col-20">
+                            <a class="button camera-buz" ng-click="getPhoto()"></a>
+                        </div>
+                    </div>
+                </div>
+		   
+		    <br>
+			<div class="items">
+				<div class="row">
+				  <div class="col label font13 tmp" >1er buz : </div>
+				  <div  class="col col-67 font15 tmp" ><span class="firstLastBuz" ng-if="tmp">{{contact.firstsendemail | toFrFormat}}</span></div>
+				</div>
+				<div class="row" ng-if="showLast">
+				  <div class="col label font13 tmp">Dernier buz : </div>
+				  <div class="col col-67 font15"><span class="firstLastBuz">{{contact.lastsendemail | toFrFormat }}</span></div>
+				</div>
+				<div class="row">
+				  <div class="col label font13 recontact"><span>Recontacter autour du :</span></div>
+				  <div class="col col-67 font15">
+					 <input  id="dateX" type="text" ng-keypress="keyPressed($event)"  ng-model="contact.rendez_vous" class="RendezVEdit datepickerDirective"  />
+				  </div>
+				</div>
+				
+				<div class="row">
+				  <div class="col label font13"><span>Nom :</span></div>
+				  <div class="col col-67" ><input  ng-model="contact.last_name"  ng-keypress="keyPressed($event)" type="text"/></div>
+				</div>
+				<div class="row">
+				  <div class="col label font13"><span>Prénom :</span></div>
+				  <div class="col col-67 font15" ><input ng-model="contact.first_name" ng-keypress="keyPressed($event)" type="text" /></div>
+				</div>
+				<div class="row">
+				  <div class="col label font13"><span>E-mail :</span></div>
+				  <div class="col col-67 truncate font15" ><input ng-model="contact.email" ng-keypress="keyPressed($event)" type="text" /></div>
+				</div>
+				<div class="row">
+				  <div class="col label font13"><span>Tel :</span></div>
+				  <div class="col col-67 font15" ><input ng-model="contact.phone_1" ng-keypress="keyPressed($event)" type="text" /></div>
+				</div>
+				<div class="row">
+				  <div class="col label font13"><span>Tel 2 :</span></div>
+				  <div class="col col-67 font15" ><input ng-model="contact.phone_2" ng-keypress="keyPressed($event)" type="text" /></div>
+				</div>
+				<div class="row">
+				  <div class="col label font13"><span>Société :</span></div>
+				  <div class="col col-67 font15" ><input ng-model="contact.company" ng-keypress="keyPressed($event)" type="text" /></div>
+				</div>
+				<div class="row" id="groupe-combo-editcontact">
+				  <div class="col label font13"><span>Groupe :</span></div>
+				  <div class="col col-67 font15" >
+				  <select id="groupeId"  ng-model="contact.list" class="item-select"
+						ng-options="group for group in groups" ng-change="changeHandler()">
+						<option></option>
+					</select>
+					<input type="text" ng-focus="isFocusable" ng-keypress="keyPressed($event)" id="newGroupeName" /></div>
+				</div>
+				<div class="row">
+				  <div class="col label font13"><span>Notes :</span></div>
+				  <div class="col col-67 truncate font15" ><input ng-model="contact.comment"   type="text" ng-keypress="keyPressed($event)" /></div>
+				</div>
+				<div class="row lastRow">
+				  <div class="col label font13"><span>Langue de l'email :</span></div>
+				  <div class="col col-67 erbuz font15"><span class="ValueLine"> {{contact.LanguageText}} </span></div>
+				</div>
+
+			</div>
+			
+			<div>
+				<button class="button button-dark btn-buzcard btn-bottom btn-supprimer-contact" menu-close ng-click="deleteContact(contact)">
+					Supprimer
+				</button>
+			</div>
+		</div>
+ 	</div>
+ 	 <br><br>
+    </ion-content>
+</ion-view>

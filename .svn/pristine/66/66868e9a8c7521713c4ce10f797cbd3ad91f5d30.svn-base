@@ -1,0 +1,82 @@
+appContext.controller("MenuController", ['$scope', '$state', '$ionicHistory', 'LoginService', 'LoadingService', 'MenuService', '$rootScope','$cordovaSQLite','$ionicPlatform','$location',
+    function($scope, $state, $ionicHistory, LoginService, LoadingService, MenuService, $rootScope,$cordovaSQLite,$ionicPlatform,$location) {
+
+  var db = null;
+  $ionicPlatform.ready(function() {
+      /**
+       * create/open DB
+       */
+      if (window.cordova) {
+          db = $cordovaSQLite.openDB("buzcard.db"); // device
+      } else {
+          db = window.openDatabase("buzcard.db", '1', 'my', 1024 * 1024 * 10); // browser
+
+      }
+  });
+  
+        if (MenuService.getLocalStorage("currentMode") == "ONLINE") {
+            $scope.currentMode = "ONLINE";
+            $scope.switchToMode = "Activer le mode OFFLINE";
+
+        } else if (!MenuService.getLocalStorage("currentMode")) {
+            $scope.currentMode = "ONLINE";
+            $scope.switchToMode = "Activer le mode OFFLINE";
+            MenuService.setLocalStorage("currentMode", "ONLINE");
+
+        } else {
+            $scope.currentMode = "OFFLINE";
+            $scope.switchToMode = "Activer le mode ONLINE";
+        }
+
+
+        //pour faire la transition entre les pages
+        $scope.goTo = function(stateT) {
+            $ionicHistory.nextViewOptions({
+                disableBack: true
+            });
+            $ionicHistory.clearCache();
+            $ionicHistory.clearHistory();
+            $state.go(stateT);
+        };
+
+        //deconnection
+        $scope.deconnexion = function() {
+            console.log('deconnexion');
+            LoginService.deleteCredentials(db, function(result) {
+                if (result.rowsAffected != 0) {
+                    $ionicHistory.nextViewOptions({
+                        disableBack: true
+                    });
+                    $ionicHistory.clearCache();
+                    $ionicHistory.clearHistory();
+
+                    $rootScope.decon = true;
+                    $location.url("/app/login");
+                } else {
+                    LoadingService.error("erreur lors de déconnection", "MenuController");
+                }
+            });
+        };
+
+        $scope.toggleMode = function(currentMode) {
+            if (currentMode == "ONLINE") {
+
+                MenuService.setLocalStorage("currentMode", "OFFLINE");
+                $scope.switchToMode = "Activer le mode ONLINE";
+                $scope.currentMode = "OFFLINE";
+                console.info($scope.currentMode);
+
+            } else {
+                MenuService.setLocalStorage("currentMode", "ONLINE");
+                $scope.switchToMode = "Activer le mode OFFLINE";
+                $scope.currentMode = "ONLINE";
+                console.log($scope.currentMode);
+            }
+        };
+
+        // to dismiss the PopUp
+        $scope.dismiss = function() {
+            LoadingService.dismiss();
+        };
+    }
+]);

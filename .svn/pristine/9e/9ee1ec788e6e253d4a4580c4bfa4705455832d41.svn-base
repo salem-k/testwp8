@@ -1,0 +1,951 @@
+appContext.factory("ContactsService", ['$http','$cordovaSQLite','LoadingService','cameraService','$rootScope','$cordovaFile','LoginService', function($http,$cordovaSQLite, LoadingService,cameraService,$rootScope,$cordovaFile,LoginService) {
+  
+  /**
+   * get contacts list from server 
+   */
+  var getContacts = function(page) {
+    
+
+    // the request parameters
+    var loginRequest = {
+      method: 'POST',
+      url: 'http://buzcard.fr/contacts_200.aspx?request=contacts',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      transformRequest: function(obj) {
+        var str = [];
+        for ( var p in obj)
+          str.push(encodeURIComponent(p) + "="+ encodeURIComponent(obj[p]));
+        return str.join("&");
+      },
+      transformResponse: function(data) {
+        var x2js = new X2JS();
+        var json = x2js.xml_str2json(data);
+        return json;
+      },
+      data: {
+        sorting_order:"desc", 
+        sorting_criterion:"date",
+        page:page
+      },
+      timeout: 4000,
+    };
+    // the HTTP request
+    return $http(loginRequest);
+  };
+  
+  /**
+   * get group list from server 
+   */
+  var getGroup = function() {
+    
+    // the request parameters
+    var getGroupRequest = {
+      method: 'GET',
+      url: 'http://buzcard.fr/contacts.aspx?request=lists',
+      transformResponse: function(data) {
+        var x2js = new X2JS();
+        var json = x2js.xml_str2json(data);
+        return json;
+        
+      },
+      timeout: 4000,
+    };
+    // the HTTP request
+    return $http(getGroupRequest);
+  };
+  
+  /**
+   * create group table
+   */
+  var createGroupTable = function(db,callBack) {
+    var createGroupeQuery = 'CREATE TABLE IF NOT EXISTS groupe ('+
+    'id INTEGER PRIMARY KEY, '+
+    'name text)';
+    try {
+        $cordovaSQLite.execute(db, createGroupeQuery).then(function(value) {
+        	return callBack();
+        }, function(reason) {
+          console.log(reason);
+        }, function(value) {
+          
+        });
+        return 0;
+      } catch (e) {
+        console.log(e);
+        return 1;
+      }
+  };
+  
+  /**
+   * empty the group table 
+   */
+  var emptyGroupTable = function(db,callBack){
+    
+    var query ="DELETE FROM groupe";
+    $cordovaSQLite.execute(db, query).then(function(value) {
+      return callBack();
+    }, function(reason){
+      console.log(reason);
+    }, function(value){
+    	
+    });
+  };
+  /**
+   * empty the contact table 
+   */
+  var emptyContactTable = function(db,callBack){
+    
+    var query ="DELETE FROM contact";
+    $cordovaSQLite.execute(db, query).then(function(value) {
+      return callBack();
+    }, function(reason){
+      console.log(reason);
+    }, function(value){
+      
+    });
+  };
+  
+  /**
+   * create contacts table
+   */
+  var createContactsTable = function(db,callBack){
+    
+    var createContactQuery = 'CREATE TABLE IF NOT EXISTS contact ('+
+    'id INTEGER, '+
+    'rendez_vous integer, email text, date INTEGER, comment text, '+
+    'last_name text, first_name text, phone_1 text, phone_2 text,company text, '+
+    'list TEXT, status text)';
+    
+    try {
+          $cordovaSQLite.execute(db, createContactQuery).then(function(value) {
+          	return callBack();
+          }, function(reason) {
+            console.log(reason);
+          }, function(value) {
+            
+          });
+          return 0;
+        } catch (e) {
+          
+          console.log(e);
+          return 1;
+        }
+  };
+  
+  /**
+   * insert into group table
+   */
+  var insertIntoGroupTable= function(db,groupName,callBack) {
+    var insertQuery = 'INSERT INTO groupe (id,name) VALUES ((select Max(id) from groupe)+1 ,"'+groupName+'")';
+    try {
+      console.warn(insertQuery);
+      $cordovaSQLite.execute(db, insertQuery).then(function(value) {
+        
+        return callBack();
+      }, function(reason) {
+      	console.log(reason);
+      }, function(value) {
+        
+      });
+      return 0;
+    } catch (e) {
+      console.log(e);
+      return 1;
+    }
+  };
+  
+  /**
+   * insert a single contatc into contacts
+   */
+  var insertIntoContactsTable = function(db,contact,callBack) {
+    var insertQuery = 'INSERT INTO contact (id,rendez_vous, email, date, comment,' +
+    'last_name, first_name, phone_1, phone_2, company, '+
+    'list, status) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)';
+   
+    try {
+      var parameters = [contact.id,toTimeStamp(contact.rendez_vous),contact.email,contact.date,addSlashes(contact.comment),
+                        addSlashes(contact.last_name),addSlashes(contact.first_name),contact.phone_1,contact.phone_2,
+                        addSlashes(contact.company),addSlashes(contact.list),contact.status];
+      $cordovaSQLite.execute(db, insertQuery,parameters).then(function(value) {
+        return callBack();
+      }, function(reason) {
+      	console.log(reason);
+      }, function(value) {
+      	
+      });
+
+      return 0;
+    } catch (e) {
+      console.log(e);
+      return 1;
+    }
+  };
+  /**
+   * insert an array of contact into contacts
+   */
+  var insertBulkIntoContactsTable = function(db,counter,contactArray,callBack) {
+    var tmp = counter;
+    var n =0 ;
+    var j=0;
+    if (counter ==0 && contactArray.length > 300 ) {
+      j=0;
+      n = contactArray.length -300;
+    }else{
+      j= contactArray.length -1;
+      n = contactArray.length;
+    } 
+    var insertQuery = "INSERT INTO contact " + " SELECT '" + contactArray[j].id + "' AS 'id', '"
+    + toTimeStamp(contactArray[j].rendez_vous) + "' AS 'rendez_vous','"
+    + contactArray[j].email + "' AS 'email','" + contactArray[j].date
+    + "' AS 'date','" + addSlashes(contactArray[j].comment) + "' AS 'comment', '"
+    + addSlashes(contactArray[j].last_name) + "' AS 'last_name','"
+    + addSlashes(contactArray[j].first_name) + "' AS 'first_name','"
+    + contactArray[j].phone_1 + "' AS 'phone_1','" + contactArray[j].phone_2
+    + "' AS 'phone_2','" + addSlashes(contactArray[j].company) + "' AS 'company','"
+    + addSlashes(contactArray[j].list) + "' AS 'list','" + contactArray[j].status
+    + "' AS 'status'";
+
+    
+    for ( ;counter< n ; counter++) {
+      insertQuery = insertQuery +"  UNION SELECT '" + contactArray[counter].id + "','"
+      + toTimeStamp(contactArray[counter].rendez_vous) + "', '"
+      + contactArray[counter].email + "','"
+      + contactArray[counter].date + "', '" + addSlashes(contactArray[counter].comment) + "', '"
+      + addSlashes(contactArray[counter].last_name) + "', '" + addSlashes(contactArray[counter].first_name)
+      + "', '" + contactArray[counter].phone_1 + "', '"
+      + contactArray[counter].phone_2 + "', '" + addSlashes(contactArray[counter].company)
+      + "', '" + addSlashes(contactArray[counter].list) + "', '" + contactArray[counter].status
+      + "'";
+    }
+    try {
+      
+      $cordovaSQLite.execute(db, insertQuery).then(function(value) {
+        if (tmp == 0 && contactArray.length > 300) {
+          return insertBulkIntoContactsTable(db,counter,contactArray,callBack);
+        } else {
+          return callBack();
+        }
+        
+      }, function(reason) {
+        
+        console.warn(insertQuery);
+        console.log(reason);
+      }, function(value) {
+        
+      });
+      
+      return 0;
+    } catch (e) {
+      console.log(e);
+      return 1;
+    }
+  };
+  /**
+   * select info contact by id-contact 
+   */
+  var getContactbyId = function(db,id, callBack){
+	  try {
+	      
+	      var query = 'SELECT * FROM contact where id='+id;
+	      console.warn(query);
+	      $cordovaSQLite.execute(db, query).then(function(result) {
+	         
+	          return callBack(result);
+	        }, function(reason) {
+	        	//TODO FIXME 
+	          console.log("error " + reason);
+	          return 1;
+	        });
+	     
+	    } catch (e) {
+	      console.log(e);
+	      return 1;
+	    }
+  	};
+  /**
+   * update info contact en local
+   */
+  var updateContactInfo = function(db, contact, callBack){
+	  
+	  try{
+		  
+	  var updateQuery = " UPDATE contact SET  "+
+	          //TODO FIXME est ce que c'est bien un timestamp ?
+	  				"rendez_vous ='"+contact.rendez_vous+"', " +
+	  				"first_name = '"+addSlashes(contact.first_name)+"', " +
+	  				"last_name  = '"+addSlashes(contact.last_name)+"', "+
+	  				"email = '"+contact.email+"', "+
+	  				"phone_1 ='"+contact.phone_1+"', "+
+	  				"phone_2 ='"+contact.phone_2+"', "+
+	  				"company ='"+addSlashes(contact.company)+"', "+
+	  				"list ='"+addSlashes(contact.list)+"', "+
+	  				"comment ='"+addSlashes(contact.comment)+"'"+
+	  				"where id="+contact.id+"";
+	  console.warn(updateQuery);
+	  $cordovaSQLite.execute(db, updateQuery).then(function(results){
+	    	
+	    	callBack();
+	 
+    	  
+      }, function(reason) {
+          console.log(reason);
+          return 1;
+      }, function(value) {
+    	
+       console.log(value);
+       return 1;
+      });
+      
+      return 0;
+    } catch (e) {
+      console.log(e);
+      return 1;
+    }
+  };
+  /**
+   *   update contact server
+   */
+  var updateContactServer = function(i,contactId, contact,callBack,errorCallBack){
+    
+     var length =0;
+     for(j in contact){
+       if(length == i)   key = j;
+       length++;
+     }
+   // the send request parameters
+    var request = {
+      method: 'POST',
+      url: 'http://buzcard.fr/contacts.aspx?request=update',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      transformRequest: function(obj) {
+        var str = [];
+        for ( var p in obj)
+          str.push(encodeURIComponent(p) + "="
+                  + encodeURIComponent(obj[p]));
+        return str.join("&");
+      },
+      transformResponse: function(data) {
+        var x2js = new X2JS();
+        var json = x2js.xml_str2json(data);
+        return json;
+      },
+      data: {
+        contact_id:contactId,
+        field : key,
+        value : contact[key]
+      },
+      timeout : 5000,
+    };
+    
+    $http(request).success(function(data, status, headers, config) {
+      if(i<length){
+        i++;
+        updateContactServer(i, contactId, contact,callBack,errorCallBack);
+      }else{
+        callBack(data);
+      } 
+    }).error(function(data, status, headers, config) {
+      errorCallBack(status);
+    });
+  };
+  /**
+   *  remove contact
+   */
+  var deleteContactServer = function(id,callBack,errorCallBack){
+    
+    // the send request parameters
+    var request = {
+            method: 'POST',
+            url: 'http://buzcard.fr/contacts.aspx?request=update',
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded'
+            },
+            transformRequest: function(obj) {
+              var str = [];
+              for ( var p in obj)
+                str.push(encodeURIComponent(p) + "="
+                        + encodeURIComponent(obj[p]));
+              return str.join("&");
+            },
+            transformResponse: function(data) {
+              var x2js = new X2JS();
+              var json = x2js.xml_str2json(data);
+              return json;
+            },
+            data: {
+              contact_id:id,
+              field : "status",
+              value : "deleted"
+            },
+            timeout : 5000,
+    };
+    
+    $http(request).success(function(data, status, headers, config) {
+        callBack(data);
+    }).error(function(data, status, headers, config) {
+      errorCallBack(status);
+    });
+  };
+
+ 
+  /**
+   * delete contact by id en local 
+   */
+  var deleteContactLocal = function(db, idContact, callBack){
+	  try{
+		  
+		  var deleteQuery = " UPDATE contact SET  "+
+		  				"status = 'deleted' " +
+		  				"where id="+idContact;
+		  console.log("Query "+deleteQuery);
+		  $cordovaSQLite.execute(db, deleteQuery).then(function(results){
+		    	 console.log('success');
+	    	  callBack();
+	      }, function(reason) {
+	          console.log(reason);
+	          return 1;
+	      }, function(value) {
+	    	
+	       console.log(value);
+	       return 1;
+	      });
+	      
+	      return 0;
+	    } catch (e) {
+	      console.log(e);
+	      return 1;
+	    }
+	  };
+  /**
+   *  get contacts with limits and range  
+   */
+  var selectContacts = function(db,page,callBack) {
+    var selectQuery = "SELECT * FROM contact WHERE status != 'deleted'  order by date DESC LIMIT 10 OFFSET "+parseInt(10*(page-1));
+    try {
+      $cordovaSQLite.execute(db, selectQuery).then(function(value) {
+        console.warn(selectQuery);
+        return callBack(value);
+      }, function(reason) {
+        console.log(reason);
+      }, function(value) {
+        console.warn(value);
+      });
+    } catch (e) {
+      // TODO: FIXME handle exception
+      return 0;
+    }
+  };
+  /**
+   *  get followers with limits and range 
+   */
+  var selectFollowers = function(db,page,callBack) {
+    var selectQuery = "SELECT * FROM contact WHERE status = 'selected'  order by date DESC LIMIT 10 OFFSET "+parseInt(10*(page-1));
+    try {
+      $cordovaSQLite.execute(db, selectQuery).then(function(value) {
+        console.warn(selectQuery);
+        return callBack(value);
+      }, function(reason) {
+        console.log(reason);
+      }, function(value) {
+        console.warn(value);
+      });
+    } catch (e) {
+      // TODO: FIXME handle exception
+      return 0;
+    }
+  };
+  
+  /**
+   * get the contacts count with the given status criteria 
+   */
+  var getCountOfContact = function(db,status,callBack) {
+    var selectQuery = "SELECT count (*) FROM contact WHERE status = '"+status+"'";
+    try {
+      $cordovaSQLite.execute(db, selectQuery).then(function(result) {
+        console.warn(selectQuery);
+        return callBack(result);
+      }, function(reason) {
+        console.log(reason);
+      }, function(value) {
+        console.warn(value);
+      });
+    } catch (e) {
+      // TODO: FIXME handle exception
+      return 0;
+    }
+  };
+  
+  /**
+   * get the à recontacter
+   */
+  var selectRecontact = function(db,callBack){
+    
+    var selectQuery = "SELECT * FROM contact where status != 'deleted' and  rendez_vous >= "+nowInTimeStamp()+" and rendez_vous <= "+weekEnd();
+    try {
+      $cordovaSQLite.execute(db, selectQuery).then(function(result) {
+        console.warn(selectQuery);
+        return callBack(result);
+      }, function(reason) {
+        console.log(reason);
+      }, function(value) {
+        console.warn(value);
+      });
+    } catch (e) {
+      // TODO: FIXME handle exception
+      return 0;
+    }
+  };
+  /**
+   * select * from groupe
+   */
+  var selectAllGroup = function(db,callBack){
+    var selectQuery = "SELECT * FROM groupe";
+    try {
+      $cordovaSQLite.execute(db, selectQuery).then(function(result) {
+        console.warn(selectQuery);
+        return callBack(result);
+      }, function(reason) {
+        console.log(reason);
+      }, function(value) {
+        console.warn(value);
+      });
+    } catch (e) {
+      // TODO: FIXME handle exception
+      return 0;
+    }
+  };
+  
+  /**
+   * select contacts per group
+   */
+  var selectContactsByGroup = function(db,groupName,callBack) {
+    var selectQuery = "SELECT * FROM contact where status != 'deleted' and list = '"+groupName+"'";
+    try {
+      $cordovaSQLite.execute(db, selectQuery).then(function(result) {
+        console.warn(selectQuery);
+        return callBack(result);
+      }, function(reason) {
+        console.log(reason);
+      }, function(value) {
+        console.warn(value);
+      });
+    } catch (e) {
+      // TODO: FIXME handle exception
+      return 0;
+    }
+  };
+  /**
+   * search function
+   */
+  var searchContact = function(db,criteria,callBack) {
+    var selectQuery = "SELECT * FROM contact WHERE ( email LIKE '%"+criteria+"%' OR last_name LIKE '%"+criteria+"%' OR first_name LIKE '%"+criteria+"%') AND status!='deleted' LIMIT 10  ";
+    try {
+      $cordovaSQLite.execute(db, selectQuery).then(function(result) {
+        console.warn(selectQuery);
+        return callBack(result);
+      }, function(reason) {
+        console.log(reason);
+      }, function(value) {
+        console.warn(value);
+      });
+    } catch (e) {
+      // TODO: FIXME handle exception
+      return 0;
+    }
+  };
+  /**
+   * downloadPhotoContact
+   */
+  var downloadPhotoContact = function(id,i, callBack){
+    var idProfil = $rootScope.idProfil;
+   // if (window.cordova){
+    if(window.cordova){
+    	var path="";
+   	 		if( /Android|BlackBerry Mini/i.test(navigator.userAgent) ) {
+			 path = cordova.file.externalRootDirectory;
+			} else {
+				 path = cordova.file.documentsDirectory;
+			}
+   	 		cameraService.checkExistFile(idProfil,id+'.jpg', function(url){
+		   //file does not exist 
+		   if(url == "img/photo_top_title.jpg"){
+			  
+			   cameraService.createPath(idProfil,  function(PathFile){
+			        var fileLocation = $rootScope.fileLocaltion;
+			        var url = "http://buzcard.fr/"+fileLocation+"contacts/"+id+"/portrait.jpg";
+			        
+			        cameraService.downloadFile(PathFile, id+'.jpg', url, function(urlImage){
+			         callBack(urlImage+ '?' + new Date().getTime(), i);
+			             });
+			     });
+			
+		 }else{
+			 // file exist 
+			callBack(url+ '?' + new Date().getTime(),i);
+		 }
+		 });
+    }
+  };
+  
+  /**
+   * remplir le tableau
+   */
+  var getAllContactsByGroup = function(db,$scope,n) {
+
+    if( n == 0 ){
+      console.log($scope.groups);
+      return $scope.groups;
+    }
+    selectContactsByGroup(db,$scope.groups[n-1].name,function(res){
+      
+      if (res.rows.length > 0) {
+        for (var int = 0; int < res.rows.length; int++) {
+          
+            //download photo contact by id ;
+                downloadPhotoContact(res.rows.item(int).id,int, function(url, i){
+                  $scope.groups[n-1].items[i].photo =url;
+        
+              });
+          
+                 
+        $scope.groups[n-1].items.push(res.rows.item(int));
+        }
+      }
+      getAllContactsByGroup(db,$scope,n-1);
+    });
+  };
+  
+  /**
+   *  edit groupe name in db
+   */
+  var editGroup = function(db,oldName, newName, callBack){
+    var query = "update groupe set name = '"+newName+"' where name='"+oldName+"'";
+    $cordovaSQLite.execute(db, query).then(function(result) {
+      console.warn(query);
+      return callBack(result);
+    }, function(reason) {
+      console.log(reason);
+    }, function(value) {
+      console.warn(value);
+    });
+  };
+  
+  /**
+   *   update group on server
+   */
+  var updateGroupServer = function(oldName, newName,callBack,errorCallBack){
+    
+   // the send request parameters
+    var request = {
+      method: 'POST',
+      url: 'http://buzcard.fr/contacts.aspx?request=rename_list',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      },
+      transformRequest: function(obj) {
+        var str = [];
+        for ( var p in obj)
+          str.push(encodeURIComponent(p) + "="
+                  + encodeURIComponent(obj[p]));
+        return str.join("&");
+      },
+      transformResponse: function(data) {
+        var x2js = new X2JS();
+        var json = x2js.xml_str2json(data);
+        return json;
+      },
+      data: {
+        old_name:oldName,
+        new_name : newName
+      },
+      timeout : 5000,
+    };
+    
+    $http(request).success(function(data, status, headers, config) {
+       return callBack(data);
+    }).error(function(data, status, headers, config) {
+      return errorCallBack(status);
+    });
+  };
+  
+  /**
+   *  edit contacts groupe name in db
+   */
+  var renameContactGroup = function(db,oldName, newName, callBack){
+    var query = "update contact set list ='"+newName+"' where id IN (select id from contact where list='"+oldName+"')";
+    $cordovaSQLite.execute(db, query).then(function(result) {
+      console.warn(query);
+      return callBack(result);
+    }, function(reason) {
+      console.log(reason);
+    }, function(value) {
+      console.warn(value);
+    });
+  };
+  
+  
+  /**
+   *  select contact bu group name
+   */
+  var selectContactByGroupName = function(db,GroupName, callBack){
+    var query = "select * from contact where list='"+GroupName+"' AND status !='deleted' ";
+    $cordovaSQLite.execute(db, query).then(function(result) {
+      console.warn(query);
+      return callBack(result);
+    }, function(reason) {
+      console.log(reason);
+    }, function(value) {
+      console.warn(value);
+    });
+  };
+  /**
+   *  delete group by name
+   */
+  var deleteGroupByName = function(db,GroupName, callBack){
+    var query = "delete from groupe where name='"+GroupName+"'";
+    $cordovaSQLite.execute(db, query).then(function(result) {
+      console.warn(query);
+      return callBack(result);
+    }, function(reason) {
+      console.log(reason);
+    }, function(value) {
+      console.warn(value);
+    });
+  };
+  
+  /**
+   * get credit de parrainnage
+   */
+  var getCreditParrainage = function(callBack){
+    var credit =0;
+    // the send request parameters
+    var request = {
+      method: 'GET',
+      url: 'http://buzcard.fr/contacts.aspx',
+      transformResponse: function(data) {
+        
+        $(data).find('.sponsor').each(function(){
+          var tmpArray = ($(this).text()).split(":");
+           credit = tmpArray[1];
+        });
+        return credit;
+      },
+
+    };
+    $http(request).success(function(data, status, headers, config) {
+    	return callBack(data);
+    });
+  };
+  
+  /**
+   * select contact by email
+   */
+  var selectContactbyEmail = function(db,email, callBack){
+    try {
+        
+        var query = "SELECT * FROM contact where email='"+email+"'";
+        console.warn(query);
+        $cordovaSQLite.execute(db, query).then(function(results) {
+           
+            return callBack(results);
+
+          }, function(reason) {
+            //TODO FIXME 
+            console.log("error " + reason);
+            return 1;
+          });
+       
+      } catch (e) {
+        console.log(e);
+        return 1;
+      };
+    };
+    
+    
+    /**
+     * 
+     */
+    var updateContactIdByEmail = function(db,email,id,callBack){
+        var updateQuery = "UPDATE contact SET id = "+id+" where email='"+email+"'";
+      
+      console.warn(updateQuery);
+      $cordovaSQLite.execute(db, updateQuery).then(function(result){
+        return callBack();
+      }, function (err) {
+        console.error("-----------------------------");
+        console.error(err);
+      });
+      
+    };
+    
+    
+    /**
+     * 
+     */
+    var updateContactStatus = function(db,id,follower,callBack){
+      var updateQuery ="";
+      if (follower=="on") {
+        updateQuery = "UPDATE contact SET status = 'selected' where id="+id;
+      } else {
+        updateQuery = "UPDATE contact SET status = 'cant_be_selected' where id="+id;
+      }
+      
+      console.warn(updateQuery);
+      $cordovaSQLite.execute(db, updateQuery).then(function(result){
+        return callBack();
+      });
+      
+    };
+    
+  /**
+   * get Contact from server by email 
+   */
+  var getContactFromServerByEmail = function(email,callBack,errorCallBack){
+    // the request parameters
+    var request = {
+      method: 'POST',
+      url: 'http://buzcard.fr/contacts.aspx?request=contacts',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      transformRequest: function(obj) {
+        var str = [];
+        for ( var p in obj)
+          str.push(encodeURIComponent(p) + "="+ encodeURIComponent(obj[p]));
+        return str.join("&");
+      },
+      transformResponse: function(data) {
+        var x2js = new X2JS();
+        var json = x2js.xml_str2json(data);
+        return json;
+      },
+      data: {
+        search:email,
+        list:"",
+        sorting_criterion:"date",
+        sorting_order:"desc",
+        page:1,
+      },
+    };
+    $http(request).success(function(data, status, headers, config) {
+      return callBack(data);
+    });
+  };
+  /**
+   * return the weekend in timeStamp format
+   */
+  function weekEnd() {
+    var today = new Date().getDate();
+    var month = new Date().getMonth()+1;
+    var year = new Date().getFullYear();
+    var now = parseInt((new Date(month+"/"+today+"/"+year).getTime()-Date.UTC(1970,0,1))/1000);
+    var diff = 6 - new Date().getDay();
+    return now + 86400 *diff;
+  };
+  
+  /**
+   * return the now timeStamp 
+   */
+  function nowInTimeStamp() {
+    var today = new Date().getDate();
+    var month = new Date().getMonth()+1;
+    var year = new Date().getFullYear();
+    var now = parseInt((new Date(month+"/"+today+"/"+year).getTime()-Date.UTC(1970,0,1))/1000);
+    return now;
+  };
+  
+  /**
+   * convert date to timeStamp
+   */
+  function toTimeStamp(date) {
+    try {
+      var array = date.split("/");
+      var dateTmp = array[1] + "/" + array[0] + "/" + array[2];
+      var x= new Date(dateTmp).getTime()/1000;
+      return x;
+    } catch (e) {
+      var x= new Date().getTime()/1000;
+      return x; 
+    }  
+	};
+
+   var uploadPhotoContact = function(path, idContact, callBack,errorCallBack){
+	 var fileName = path.substr(path.lastIndexOf('/') + 1);
+     var pathFile = path.substr(0, path.lastIndexOf('/') + 1);
+     $cordovaFile.readAsArrayBuffer(pathFile, fileName).then(function(success) {
+             // success
+
+             var fd = new FormData();
+             var image = new Uint8Array(success);
+             fd.append('photo', new Blob([image], {
+                 type: 'image/jpeg'
+             }), fileName);
+
+             $http.post("http://buzcard.fr/contacts_200.aspx?request=update_photo&type=portrait&contact_id="+idContact, fd, {
+                     transformRequest: angular.identity,
+                     headers: {
+                         'Content-Type': undefined
+                     }
+                 })
+                 .success(function(data, status, headers, config) {
+                     console.log('success upload ...' );
+                     callBack();
+
+                 })
+                 .error(function() {
+                     console.log('erreur');
+                     errorCallBack();
+                 });
+         }, function(error) {
+             // error
+           errorCallBack();
+         });
+	};
+
+
+
+  /**
+   * the factory returns
+   */
+  return {
+    getContacts: getContacts,
+    getGroup : getGroup,
+    createGroupTable :createGroupTable,
+    createContactsTable : createContactsTable,
+    insertIntoGroupTable : insertIntoGroupTable,
+    insertIntoContactsTable :insertIntoContactsTable,
+    emptyGroupTable  : emptyGroupTable,
+    emptyContactTable : emptyContactTable,
+    selectContacts : selectContacts,
+    getCountOfContact : getCountOfContact,
+    getContactbyId:getContactbyId,
+    selectFollowers : selectFollowers,
+    selectAllGroup : selectAllGroup,
+    selectRecontact : selectRecontact,
+    updateContactInfo:updateContactInfo,
+    deleteContactLocal:deleteContactLocal,
+    selectContactsByGroup : selectContactsByGroup,
+    getAllContactsByGroup : getAllContactsByGroup,
+    searchContact : searchContact,
+    insertBulkIntoContactsTable : insertBulkIntoContactsTable,
+    downloadPhotoContact: downloadPhotoContact,
+    updateContactServer :updateContactServer,
+    deleteContactServer : deleteContactServer,
+    editGroup : editGroup,
+    updateGroupServer : updateGroupServer,
+    renameContactGroup : renameContactGroup,
+    selectContactByGroupName : selectContactByGroupName,
+    deleteGroupByName : deleteGroupByName,
+    uploadPhotoContact:uploadPhotoContact,
+    getCreditParrainage : getCreditParrainage,
+    getContactFromServerByEmail: getContactFromServerByEmail,
+    selectContactbyEmail : selectContactbyEmail,
+    updateContactStatus : updateContactStatus,
+    updateContactIdByEmail : updateContactIdByEmail
+  };
+  
+}]);

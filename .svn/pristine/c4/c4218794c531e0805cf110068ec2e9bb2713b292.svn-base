@@ -1,0 +1,143 @@
+appContext.controller("LoginController", [
+    '$scope',
+    '$state',
+    'LoginService',
+    '$ionicPlatform',
+    '$cordovaSQLite',
+    'LoadingService',
+    '$location',
+    '$ionicHistory',
+    '$rootScope',
+    function($scope, $state, LoginService, $ionicPlatform, $cordovaSQLite, LoadingService,$location,$ionicHistory,$rootScope) {
+
+        var db = null;
+        $ionicPlatform.ready(function() {
+            /**
+             * create/open DB
+             */
+            if (window.cordova) {
+                db = $cordovaSQLite.openDB("buzcard.db"); // device
+            } else {
+                db = window.openDatabase("buzcard.db", '1', 'my', 1024 * 1024 * 10); // browser
+
+            }
+            if($rootScope.decon){
+               	$rootScope.decon = false;
+               	window.location.reload();
+               }
+//            LoginService.selectCredentials(db, function(result) {
+//              if (result.rows.length > 0) {
+//                  // redirection to the buzcard page
+//                //  $location.url("/app/buzcard");
+//            		$ionicViewService.nextViewOptions({
+//                	    disableBack: true
+//                	  });
+//                    $state.go("app.buzcard");
+//                 
+//              }
+//          });
+        });
+
+        $scope.email = "rania.wannes@tunisianit.com";
+        $scope.password = "rania29";
+        // check whether the user exist or not
+        $scope.signIn = function(email, password) {
+            if (typeof email === 'undefined' || typeof password === 'undefined' || !validateEmail(email)) {
+                LoadingService.error("Veuillez saisir votre login ainsi que votre mot de passe", "LoginController");
+            } else {
+                LoadingService.loading("Chargement...");
+
+                LoginService.doLogin(email, password)
+                    .success(function(response, status, headers, config) {
+
+                        // user exist
+                        if (parseInt(response.identification) != 0) {
+                          $rootScope.email = email;
+                          $rootScope.password = password;
+                           $ionicHistory.nextViewOptions({
+                                        	  disableBack: true
+                                        	});
+                                    	  $ionicHistory.clearCache();
+                          $ionicHistory.clearHistory();
+                          $state.go("app.synchro");
+                          LoadingService.dismiss();
+                        }
+                        // user does not exists
+                        else {
+                            LoadingService.error("Email ou mot de passe invalide, veuillez vérifier vos identifiants", "LoginController");
+                        }
+
+                    }).error(function(data, status, headers, config) {
+                        LoadingService.error("Une erreur réseau est servenu<br>Veuillez réessayer plus tard", "LoginController");
+
+                    });
+            }
+        };
+        
+        // to dismiss the PopUp
+        $scope.dismiss = function() {
+            LoadingService.dismiss();
+        };
+
+        // activate the given email
+        $scope.activate = function(email) {
+            if (!validateEmail(email)) {
+                LoadingService.error("Merci de saisir un email valide", "LoginController");
+            } else {
+                LoadingService.loading("Chargement...");
+                LoginService
+                    .activateAccount(email)
+                    .success(function(data, status, headers, config) {
+                        switch (data.activation) {
+                            case "already_activated":
+                                LoadingService.success("Votre compte est déjà activé.", "LoginController");
+                                break;
+                            case "activated_KDO":
+                                LoadingService.success("Votre compte Buzcard<br/>est activé, nous vous avons<br/>envoyé un email pour créer votre mot de passe .", "LoginController");
+                                break;
+
+                            default:
+                                break;
+                        };
+                    }).error(function(data, status, headers, config) {
+                        LoadingService.error("Une erreur réseau est servenu<br>Veuillez réessayer plus tard", "LoginController");
+                    });
+            }
+
+        };
+
+        // deconnection
+        $scope.deconnexion = function(){
+          console.log('deconnexion');
+           LoginService.deleteCredentials(db, function(result) {
+             if (result.rowsAffected !=0) {
+            	  $ionicHistory.nextViewOptions({
+                	  disableBack: true
+                	});
+            	  $ionicHistory.clearCache();
+            	  $ionicHistory.clearHistory();
+            	$rootScope.decon =true;
+            	  $location.url("/app/login");
+            } else {
+              LoadingService.error("erreur lors de déconnection","LoginController");
+            }
+        });
+        };
+        /*
+         * pour faire la transition entre les pages
+         */
+        $scope.goTo = function(stateT){
+        	 $ionicHistory.nextViewOptions({
+           	  disableBack: true
+           	});
+       	  $ionicHistory.clearCache();
+       	  $ionicHistory.clearHistory();
+       	  $state.go(stateT);
+        }
+        
+        function validateEmail(email) {
+            var re = /^([\w-]+(?:\.[\w-]+)*)@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$/i;
+            return re.test(email);
+        }
+    }
+]);

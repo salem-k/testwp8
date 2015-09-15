@@ -1,0 +1,64 @@
+<ion-view align-title="center" animation="slide-right-left">
+    <ion-content overflow-scroll="true" class="has-footer">
+        <div class="sep-header"></div>
+ 	<div class="list">
+ 	<div class="naviguation">
+ 	<a class="left" ui-sref="app.contactList" menu-close>Retour</a>
+ 	<a class="right"  ui-sref="app.contactEdit({id: contact.id })" menu-close>Modifier</a>
+ 	</div>
+ 	
+		   <div class="contact-edit">
+		   
+		    <div class="header-contact">
+		       <img  id="profil2" ng-src="{{photoProfil}}">
+		    </div>
+		 
+		    <br>
+			
+			<div class="items">
+				<div class="row">
+				  <div class="col label">1er BUZ : </div>
+				  <div class="col col-67" >{{contact.date *1000 |date:'dd/MM/yyyy HH:mm '}}</div>
+				</div>
+				<div class="row">
+				  <div class="col label">Recontacter autour du :</div>
+				  <div class="col col-67">{{contact.rendez_vous |date:'dd/MM/yyyy ' }}</div>
+				</div>
+				<div class="row">
+				  <div class="col label">Nom :</div>
+				  <div class="col col-67" >{{contact.last_name |escape}}</div>
+				</div>
+				<div class="row">
+				  <div class="col label">Prénom :</div>
+				  <div class="col col-67" >{{contact.first_name |escape}}</div>
+				</div>
+				<div class="row">
+				  <div class="col label">E-mail :</div>
+				  <div class="col col-67" >{{contact.email}}</div>
+				</div>
+				<div class="row">
+				  <div class="col label">Tel :</div>
+				  <div class="col col-67" >{{contact.phone_1}}</div>
+				</div>
+				<div class="row">
+				  <div class="col label">Tel 2 :</div>
+				  <div class="col col-67" >{{contact.phone_2}}</div>
+				</div>
+				<div class="row">
+				  <div class="col label">Société :</div>
+				  <div class="col col-67" >{{contact.company |escape}}</div>
+				</div>
+				<div class="row">
+				  <div class="col label">Groupe :</div>
+				  <div class="col col-67" >{{contact.list |escape}}</div>
+				</div>
+				<div class="row">
+				  <div class="col label">Notes :</div>
+				  <div class="col col-67" >{{contact.comment |escape}}</div>
+				</div>
+			</div>
+			
+		</div>
+ 	</div>
+    </ion-content>
+</ion-view>

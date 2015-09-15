@@ -1,0 +1,278 @@
+appContext.controller('BuzcardEditController', [
+    'BuzcardService',
+    'cameraService',
+    '$scope',
+    '$state',
+    '$ionicPlatform',
+    '$cordovaSQLite',
+    '$cordovaFile',
+    'LoadingService',
+    '$ionicHistory',
+    'ConnectionService',
+    'SynchroServices',
+    function(BuzcardService, cameraService, $scope, $state, $ionicPlatform,
+        $cordovaSQLite, $cordovaFile, LoadingService,$ionicHistory,ConnectionService,SynchroServices) {
+
+        var db = null;
+        var tmpProfil ={};
+        $ionicPlatform.ready(function() {
+
+            /**
+             * create/open DB
+             */
+            if (window.cordova) {
+                db = $cordovaSQLite.openDB("buzcard.db"); // device
+            } else {
+                db = window.openDatabase("buzcard.db", '1', 'my', 1024 * 1024 * 10); // browser
+            }
+            $ionicHistory.clearHistory();
+            showInfos();
+        });
+
+        /**
+         * get infos profil
+         */
+        function showInfos() {
+            BuzcardService.selectProfile(db, function(result) {
+                var profil = result.rows.item(0);
+                $scope.infos = profil;
+                tmpProfil =angular.copy(result.rows.item(0));
+                
+                cameraService.checkExistFile(profil.id, 'portrait.jpg',
+                    function(url) {
+                        $scope.photoProfil = url; // "img/photo_top_title.jpg";
+                    });
+                // activer l'onglet coordonnées par defaut
+                $scope.isSelectedCordonnees = true;
+            });
+        };
+
+        /**
+         * capture photo
+         */
+        $scope.getPhoto = function() {
+            var options = {
+                quality: 50,
+                destinationType: Camera.DestinationType.FILE_URI,
+                sourceType: Camera.PictureSourceType.CAMERA,
+                encodingType: Camera.EncodingType.JPEG,
+                targetWidth: 100,
+                targetHeight: 100,
+                popoverOptions: CameraPopoverOptions
+            };
+            cameraService.getPicture(options).then(function(imageURI) {
+                var fileName = $scope.infos.id + '/portrait.jpg';
+                $scope.photoProfil = imageURI;
+                cameraService.RenamePicture(fileName, imageURI, function(url) {
+                    $scope.photoProfil = url + '?' + new Date().getTime();
+                    ConnectionService.isConnected(db,function() {
+                    //cas il ya connection 
+                    BuzcardService.uploadPhotoProfil(url, function() {
+                        console.log('success upload PHOTO');
+                    }, function(){
+                  	  console.log('erreur upload photo buzcard');
+                    });
+                    },function(){
+                    	// cas pas de connection
+                    	 SynchroServices.insertRequest(db, "BUZCARDPHOTO", {path:url}, function() {
+                    		 console.log('Request inserted BUZCARDPHOTO');
+                         });
+                    });
+                });
+            }, function(err) {
+                console.err(err);
+            });
+        };
+        /**
+         * choose file from library
+         */
+        $scope.choseFile = function() {
+            var options = {
+                quality: 50,
+                destinationType: Camera.DestinationType.FILE_URI,
+                sourceType: Camera.PictureSourceType.PHOTOLIBRARY,
+                encodingType: Camera.EncodingType.JPEG,
+                targetWidth: 100,
+                targetHeight: 100,
+                popoverOptions: CameraPopoverOptions
+            };
+
+            cameraService.getPicture(options).then(function(imageURI) {
+                var fileName = $scope.infos.id + '/portrait.jpg';
+                $scope.photoProfil = imageURI;
+                var imageURL = imageURI.substr(0, imageURI.lastIndexOf('?'));
+                cameraService.RenamePicture(fileName, imageURL, function(url) {
+                    $scope.photoProfil = url + '?' + new Date().getTime();
+                    
+                    ConnectionService.isConnected(db,function() {
+                    	//cas ou il ya connexion 
+                    	  BuzcardService.uploadPhotoProfil(url, function() {
+                              console.log('success upload PHOTO');
+                          }, function(){
+                          	  console.log('erreur upload photo buzcard');
+                          });
+                    },function(){
+                    	// cas pas de connexion 
+                    	 SynchroServices.insertRequest(db, "BUZCARDPHOTO", {path:url}, function() {
+                    		 console.log('Request inserted BUZCARDPHOTO');
+                    });
+                  
+                 });
+                });
+            }, function(err) {
+                console.err(err);
+            });
+
+        };
+
+        /**
+         * update infos profil
+         */
+        $scope.updateProfile = function() {
+         
+            LoadingService.loading("Mise à jour du profil en cours...");
+            BuzcardService.updateProfil(db, $scope.infos, function(profil) {
+           
+            });
+
+            ConnectionService.isConnected(db,function() {
+                //cas ou il y a de connection
+              
+                /***********************\
+                 préparation de l'objet 
+                \***********************/
+                var profilObj = {};
+                for (var key in tmpProfil)
+                   if($scope.infos[key] != tmpProfil[key])
+                     profilObj[key] =$scope.infos[key];
+                //if there is no difference (no modification)
+                if (isEmpty(profilObj)) {
+                  LoadingService.dismiss();
+                  $ionicHistory.nextViewOptions({
+                	  disableBack: true
+                	});
+                  $state.go("app.buzcard");
+                } else {
+                  BuzcardService.updateProfilServer(0, profilObj, function(data) {
+                    if (data.response.status == 0) {
+                      LoadingService.dismiss();
+                      $ionicHistory.nextViewOptions({
+                    	  disableBack: true
+                    	});
+                      $state.go("app.buzcard");
+
+                    } else {
+                        LoadingService.error("Une erreur est servenu lors synchronisation", "BuzcardEditController");
+                    }
+
+                }, function(status) {
+                    LoadingService.error("Une erreur réseau est servenu ", "BuzcardEditController");
+                });
+                }
+
+                
+            }, function() {
+              
+           // cas s'il pas de connection
+              /***********************\
+               préparation de l'objet 
+              \***********************/
+              var profilObj = {};
+              for (var key in tmpProfil)
+                  if ($scope.infos[key] != tmpProfil[key])
+                      profilObj[key] = $scope.infos[key];
+                  //if there is no modification 
+              if (!isEmpty(profilObj)) {
+                  SynchroServices.insertRequest(db, "BUZCARDEDIT", {profile:profilObj} , function() {
+                      LoadingService.dismiss();
+                      $ionicHistory.nextViewOptions({
+                    	  disableBack: true
+                    	});
+                      $state.go("app.buzcard");
+                  });
+              }
+              //buzcard modified
+              else {
+                  LoadingService.dismiss();
+                  $ionicHistory.nextViewOptions({
+                	  disableBack: true
+                	});
+                  $state.go("app.buzcard");
+              }
+              });
+
+        };
+
+        /**
+         * select l'onglet actif
+         */
+        $scope.selectElement = function(element) {
+
+            if (element == 'Coordonnes') {
+                if ($scope.isSelectedCordonnees) {
+                    $scope.isSelectedCordonnees = false;
+                } else {
+                    $scope.isSelectedCordonnees = true;
+                    $scope.isSelectedAdresse = false;
+                    $scope.isSelectedrxSociaux = false;
+                    $scope.isSelectedLink = false;
+                    $scope.isSelectedNews = false;
+                }
+
+            } else if (element == 'Adresse') {
+                if ($scope.isSelectedAdresse) {
+                    $scope.isSelectedAdresse = false;
+                } else {
+                    $scope.isSelectedAdresse = true;
+                    $scope.isSelectedCordonnees = false;
+                    $scope.isSelectedrxSociaux = false;
+                    $scope.isSelectedLink = false;
+                    $scope.isSelectedNews = false;
+                }
+
+            } else if (element == 'rxSociaux') {
+                if ($scope.isSelectedrxSociaux) {
+                    $scope.isSelectedrxSociaux = false;
+                } else {
+                    $scope.isSelectedAdresse = false;
+                    $scope.isSelectedCordonnees = false;
+                    $scope.isSelectedrxSociaux = true;
+                    $scope.isSelectedLink = false;
+                    $scope.isSelectedNews = false;
+                }
+
+            } else if (element == 'link') {
+                if ($scope.isSelectedLink) {
+                    $scope.isSelectedLink = false;
+                } else {
+                    $scope.isSelectedAdresse = false;
+                    $scope.isSelectedCordonnees = false;
+                    $scope.isSelectedrxSociaux = false;
+                    $scope.isSelectedLink = true;
+                    $scope.isSelectedNews = false;
+                }
+
+            } else if (element == 'news') {
+                if ($scope.isSelectedNews) {
+                    $scope.isSelectedNews = false;
+                } else {
+                    $scope.isSelectedAdresse = false;
+                    $scope.isSelectedCordonnees = false;
+                    $scope.isSelectedrxSociaux = false;
+                    $scope.isSelectedLink = false;
+                    $scope.isSelectedNews = true;
+                }
+
+            }
+        };
+
+        $scope.dismiss = function() {
+            LoadingService.dismiss();
+        };
+        
+        function isEmpty(value){
+          return Boolean(value && typeof value == 'object') && !Object.keys(value).length;
+        };
+
+    }
+]);

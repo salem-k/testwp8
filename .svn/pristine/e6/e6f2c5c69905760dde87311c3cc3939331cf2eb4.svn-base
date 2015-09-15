@@ -1,0 +1,110 @@
+<ion-view align-title="center" animation="slide-right-left">
+    <ion-content scroll="true" class="has-footer buzcardcontainer">
+        <div class="list">
+            <div class="send-vcard ">
+             <div class="ocr_buzcardSend"  >
+				<p class="label-Send">Entrer l'email de votre interlocuteur : </p>
+				<input id="email" type="email" ng-model="email"  class="input-send" ng-keypress="keyPressed($event)"	placeholder=""/>
+						<br/>
+				
+				<table  width="98%" cellpadding="0px" cellspacing="0px" style="padding-top:0px;">
+					<tr>	
+					<td width="65%">
+						<label class="label-Send"> 
+						<font >Prendre en photo</font> <br/>
+						<font >sa carte de visite :</font>
+						</label>
+					</td>
+					<td width="35%" align="right">
+						<a   class="camera-buz-send" ng-click="getPhoto()"></a>
+					</td>
+					</tr>
+				</table>
+				
+			</div>
+
+		<div   class="lang_Buzcard" style="">
+			<table width="98%">
+				<tr> 
+					<td width="65%">
+						<label  class="label-Send"> 
+						<font >- Choisir la langue :</font> <br/>
+						</label>
+					</td>
+					<td width="35%" align="right">
+						<select id="selectLangId"  ng-model="selectLang" class="select-buz">
+                       		<option value="fr">Français</option> 
+							<option value="gsw">&nbsp;Alsacien/Elsässisch</option>
+							<option value="bre">&nbsp;Breton/Brezhoneg</option>
+							<option value="cre">&nbsp;Créole/Kreyol</option>
+							<option value="nicois">&nbsp;Nissart/Niçois</option>
+							<option value="en">Anglais/English</option>
+							<option value="ar">Arabe/العربية</option>
+							<option value="da">Danois/Dansk</option>
+							<option value="de">Allemand/Deutsch</option>
+							<option value="gre">Grec/Ελληνικά</option>
+							<option value="he">Hebreu/עִבְרִית</option>
+							<option value="it">Italien/Italiano</option>
+							<option value="ko">Coréen/한국말</option>
+							<option value="zh">Mandarin/官話</option>
+							<option value="pl">Polonais/Język Polski</option>
+							<option value="rus">Russe/Русский</option>
+							<option value="es">Espagnol/Español</option>
+							<option value="tur">Turc/Türkçe</option>
+							<option value="sued">Suedois/Svenska</option>
+							<option value="jp">Japonais/日本語</option>
+							<option value="tch">Tchèque/Čeština</option>
+							<option value="nor">Norvégien/Norsk</option>
+							<option value="pt">Portugais/Português</option>
+							<option value="ser">Serbo-croate/Srpskohrvatski Jezik</option>
+							<option value="fin">Finnois/Suomi</option>
+							<option value="urdu">Ourdou/اردو</option>
+						</select>
+					</td>
+				</tr>
+			</table>
+			</div>
+			<div   class="checkFoll-Buz">
+			<table width="98%">
+				<tr> 
+					<td width="65%">
+						<label class="label-Send" > 
+						<font >- Rendre follower :</font><br/>
+						</label>
+					</td>
+					<td width="35%" align="right">	
+						<input checked="checked" type="checkbox" ng-model="checkFollower"/>
+					</td>
+				</tr>
+			</table>
+			</div>
+			<div  class="rdv-Buz">
+			<table width="98%">
+				<tr> 
+				<td width="65%">			
+				<label  class="label-Send" >
+							<font >- Recontacter vers le :</font>
+						</label>
+				</td>
+				<td width="35%" align="right">	
+					<input type="text" ng-model="dateRDV"   class="dateOverflow datepickerDirective" id="datepickerDirective"  />
+				</td>	
+				</tr>
+			</table>
+			</div>
+
+
+                <div>
+                    <button class="button button-full button-dark" ui-sref="app.buzcard" nav-direction="back"  menu-close>
+                        Retour
+                    </button>
+                    <button class="button button-full button-light" menu-close ng-click="sendBuzcard(email,selectLang,checkFollower,dateRDV)" ng-style="{border : firstColor , backgroundColor: firstColor}">
+                        Envoyer
+                    </button>
+                </div>
+            </div>
+        </div>
+
+ <br><br>
+    </ion-content>
+</ion-view>

@@ -1,0 +1,26 @@
+	
+
+
+
+appContext.controller('TestsController', ['$scope', '$state',   '$ionicPlatform','$cordovaSQLite',
+	                                           function($scope,$state,$ionicPlatform,$cordovaSQLite) {
+	                                            
+	                                           	var db = null;
+
+	                                           	  $ionicPlatform.ready(function() {
+	                                           		/**
+	                                           	     * create/open DB
+	                                           	     */
+	                                           	    if (window.cordova) {
+	                                           	      db = $cordovaSQLite.openDB("buzcard.db"); // device
+	                                           	    } else {
+	                                           	      db = window.openDatabase("buzcard.db", '1', 'my',1024 * 1024 * 10); // browser
+	                                           	    }
+
+	                                           	  });
+	                                           	
+
+	                                           	 
+	                                        
+	                                           
+	                                           }]);

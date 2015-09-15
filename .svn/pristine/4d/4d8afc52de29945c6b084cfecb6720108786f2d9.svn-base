@@ -1,0 +1,106 @@
+<ion-view align-title="center" animation="slide-right-left" hide-back-button="true">
+    <ion-content overflow-scroll="true" class="has-footer" autofocus>
+        <div class="list buzcard-page">
+            <div class="header-vcard item-thumbnail-right">
+                <img id="profil"  ng-src="{{photoProfil}}">
+                <h5>{{infos.first_name}} </h5>
+                <h5>{{infos.last_name}}</h5>
+                <div class="clear-bar"></div>
+                <div class="accounts">
+                    <img src="img/facebook.png" ng-show="!infos.facebook ==''">
+                    <img src="img/twitter.png" ng-show="!infos.twitter ==''">
+                    <img src="img/viadeo.png" ng-show="!infos.viadeo ==''">
+                    <img src="img/delicious.png" ng-show="!infos.delicious ==''">
+                    <img src="img/foursquare.png" ng-show="!infos.foursquare ==''">
+                    <img src="img/google-plus.png" ng-show="!infos.google-plus ==''">
+                    <img src="img/linkedin.png" ng-show="!infos.linkedin ==''">
+                    <img src="img/myspace.png" ng-show="!infos.myspace ==''">
+                    <img src="img/pinterest.png" ng-show="!infos.pinterest ==''">
+                    <img src="img/rss.png" ng-show="{{!infos.rss ==''}}">
+                </div>
+            </div>
+            <button class="button button-full button-light btn-buzcard btn-top" ui-sref="app.buzcardSend" menu-close>
+                Envoyer
+            </button>  
+            <div class="vcard-infos">
+                <div class="row" ng-show="!infos.company ==''">
+                    <div class="col">Organisation</div>
+                    <div class="col col-67" id="company">{{infos.company}}</div>
+                </div>
+                <div class="row" ng-show="!infos.position ==''">
+                    <div class="col">Fonction</div>
+                    <div class="col col-67" id="position">{{infos.position}}</div>
+                </div>
+                <div class="row" ng-show="!infos.network ==''">
+                    <div class="col">Réseau(x)</div>
+                    <div class="col col-67" id="network">{{infos.network}}</div>
+                </div>
+
+                <div class="row" ng-show="!infos.mobile_1 ==''">
+                    <div class="col">Mobile </div>
+                    <div class="col col-67" id="mobile_1">{{infos.mobile_1}}</div>
+                </div>
+                <div class="row" ng-show="!infos.mobile_2 ==''">
+                    <div class="col">Mobile 2</div>
+                    <div class="col col-67" id="mobile_2">{{infos.mobile_2}}</div>
+                </div>
+                <div class="row" ng-show="!infos.landline_1 ==''">
+                    <div class="col">Tél. fixe</div>
+                    <div class="col col-67" id="landline_1">{{infos.landline_1}}</div>
+                </div>
+                <div class="row" ng-show="!infos.landline_2 ==''">
+                    <div class="col">Tél. perso</div>
+                    <div class="col col-67" id="landline_2">{{infos.landline_2}}</div>
+                </div>
+                <div class="row" ng-show="!infos.fax ==''">
+                    <div class="col">Fax</div>
+                    <div class="col col-67" id="fax">{{infos.fax }}</div>
+                </div>
+                <div class="row" ng-show="!infos.skype ==''">
+                    <div class="col">Skype</div>
+                    <div class="col col-67" id="skype">{{infos.skype}}</div>
+                </div>
+                <div class="row" ng-show="!infos.email ==''">
+                    <div class="col">Email</div>
+                    <div class="col col-67" id="email">{{infos.email}}</div>
+                </div>
+                <div class="row" ng-show="!infos.address ==''">
+                    <div class="col">Addresse</div>
+                    <div class="col col-67" id="address">{{infos.address}}</div>
+                </div>
+                
+                <div class="row" ng-show="!infos.link_1 ==''">
+                    <div class="col">Lien 1</div>
+                    <div class="col col-67" id="link_1"><a href="{{infos.link_1}}">{{infos.link_title_1}}</a></div>
+                </div>
+                <div class="row" ng-show="!infos.link_2 ==''">
+                    <div class="col">Lien 2</div>
+                    <div class="col col-67" id="link_2"><a href="{{infos.link_2}}">{{infos.link_title_2}}</a></div>
+                </div>
+                <div class="row" ng-show="!infos.link_3 ==''">
+                    <div class="col">Lien 3</div>
+                    <div class="col col-67" id="link_3"><a href="{{infos.link_3}}">{{infos.link_title_3}}</a></div>
+                </div>
+                <div class="row" ng-show="!infos.link_4 ==''">
+                    <div class="col">Lien 4</div>
+                    <div class="col col-67" id="link_4"><a href="{{infos.link_4}}">{{infos.link_title_4}}</a></div>
+                </div>
+                <div class="row" ng-show="!infos.news_1 ==''">
+                    <div class="col">Actu n°1</div>
+                    <div class="col col-67" id="news_1">{{infos.news_1}}</div>
+                </div>
+                <div class="row" ng-show="!infos.news_2 ==''">
+                    <div class="col">Actu n°2</div>
+                    <div class="col col-67" id="news_2">{{infos.news_2}}</div>
+                </div>
+                <div class="row" ng-show="!infos.news_3 ==''">
+                    <div class="col">Actu n°3</div>
+                    <div class="col col-67" id="news_3">{{infos.news_3}}</div>
+                </div>
+            </div>
+            <button class="button button-full button-light btn-buzcard btn-bottom" ui-sref="app.buzcardEdit" menu-close>
+                Mettre à jour
+            </button>
+        </div>
+    </ion-content>
+</ion-view>

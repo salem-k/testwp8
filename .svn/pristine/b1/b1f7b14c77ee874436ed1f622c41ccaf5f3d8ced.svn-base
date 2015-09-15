@@ -1,0 +1,149 @@
+appContext.factory('cameraService', ['$q','$cordovaFile','$timeout','$cordovaFileTransfer', function($q, $cordovaFile,$timeout, $cordovaFileTransfer) {
+
+ 
+   var  getPicture=  function(options) {
+      var q = $q.defer();
+
+      navigator.camera.getPicture(function(result) {
+        // Do any magic you need
+        q.resolve(result);
+      }, function(err) {
+        q.reject(err);
+      }, options);
+
+      return q.promise;
+    };
+   /**
+    * 
+    */
+    var RenamePicture= function(NewPathFile, imageURL, callBack){
+    
+    	
+    	var fileName = imageURL.substr(imageURL.lastIndexOf('/')+1);
+    	var pathFile = imageURL.substr(0,imageURL.lastIndexOf('/')+1);
+    	var newFileName = NewPathFile.substr(NewPathFile.lastIndexOf('/')+1);
+    	var path="";
+    	if(window.cordova){
+    	    if( /Android|BlackBerry Mini/i.test(navigator.userAgent) ) {
+			 path = cordova.file.applicationStorageDirectory;
+			} else {
+				path = cordova.file.documentsDirectory;
+			}
+    	//TODO FIXME  a terminer 
+    	var dirFile =path+NewPathFile.substr(0,NewPathFile.lastIndexOf('/')+1);
+	        $cordovaFile.moveFile(pathFile,fileName ,dirFile, newFileName)
+	          .then(function (success) {
+	        	  
+	         callBack(success.nativeURL);
+	        }, function (error) {
+	         callBack(imageURL);
+	        });
+    	}
+    };
+    /**
+     * download photo serveur 
+     */
+    var downloadFile= function(path, nameFile, url, callBack){
+    	
+    	$cordovaFile.createFile(path, nameFile , true)
+        .then(function (success) {
+        
+        	 var targetPath = success.nativeURL;
+             var trustHosts = true;
+             var options = {};
+             $cordovaFileTransfer.download(url, targetPath, options, trustHosts)
+               .then(function(result) {
+                //successs
+            	  callBack(result.nativeURL);
+               }, function(err) {
+            	   callBack("img/photo_top_title.jpg");
+            	   //console.log('erreur download'+err.message);
+                 // Error
+               }, function (progress) {
+                 
+                   });
+             
+        }, function (error) {
+          // error
+        });
+     
+       
+        };
+        /**
+         * create path en params
+         */
+     var createPath = function(path, callBack){
+    	
+    	// if(window.cordova){
+    		 if( /Android|BlackBerry Mini/i.test(navigator.userAgent) ) 
+    			{
+    			 directoryRoot = cordova.file.applicationStorageDirectory;
+    			} else {
+    		   directoryRoot = cordova.file.documentsDirectory;
+    			}
+				 $cordovaFile.checkDir(directoryRoot, path)
+				    .then(function (success) {
+				              directoryRoot = success.nativeURL;
+				         callBack(success.nativeURL);
+	             }, function (error) {
+	               // error
+	            	 $cordovaFile.createDir(directoryRoot, path, true)
+	                 .then(function (success) {
+	                   // success
+	                	 directoryRoot = success.nativeURL;
+	                	
+	                   	  callBack(directoryRoot);
+	                   
+	                 }, function (error) {
+	                   // error
+	                 });
+	
+	             }); 
+    	      
+    		
+
+    	 
+     };
+     /**
+      * check if photo exist in the good location
+      */
+     var checkExistFile = function(id,nameFile,callBack){
+    	 if(window.cordova){
+    		 if( /Android|BlackBerry Mini/i.test(navigator.userAgent)) 
+ 			{
+ 			 path = cordova.file.applicationStorageDirectory;
+ 			} else {
+ 				 path = cordova.file.documentsDirectory;
+ 			}
+    	 //var pathFile = '/buzcard'+id;
+    	 $cordovaFile.checkDir(path, id)
+         .then(function (success) {
+    	 if(window.cordova){
+        	 $cordovaFile.checkFile(success.nativeURL, nameFile)
+             .then(function (success) {
+               // success
+            	 callBack(success.nativeURL);
+             }, function (error) {
+               // error
+            	 callBack("img/photo_top_title.jpg");
+            	 
+             });
+    	   }
+           // success
+         }, function (error) {
+           // error
+        	 	callBack("img/photo_top_title.jpg");
+         });
+    	 
+    	 }
+
+     };
+        
+   return {
+	   getPicture : getPicture,
+	   RenamePicture : RenamePicture,
+	   downloadFile : downloadFile, 
+	   createPath:createPath,
+	   checkExistFile:checkExistFile
+	  };
+}]);

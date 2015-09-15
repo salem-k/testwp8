@@ -1,0 +1,38 @@
+<ion-view align-title="center" animation="slide-right-left">
+    <ion-content class="login" style="top:0!important">
+ 		<img class="img-header-login" src="img/logo-cbc.png" />
+ 		
+ 		<div class="sep-header"></div>
+       
+        <div class="login-page">
+         <h4 class="center">ME CONNECTER</h4>
+            <div  class='formLogin'>
+                <form name="loginForm" ng-submit="signIn(email,password)">
+                    <span class="input-label"></span>
+                    <input type="email" class="input-login"  ng-model="email" name="email" placeholder="E-mail"> <span class="input-label"></span>
+                    <input type="password" class="input-login" ng-model="password" name="password" placeholder="Mot de passe"><span class="input-label"></span>
+                    <div class="recreePassword">
+                        <div class="c80">
+                            <a class='link' href="#" onclick="window.open('http://www.buzcard.fr/recovery.aspx?email=', '_system', 'location=yes'); return false;">Recréer mon mot de passe</a>
+                        </div>
+                        <div class="c20">
+                            <input value="OK" type="submit" menu-close class="button button-light button-login">
+                        </div>
+                    </div>
+                </form>
+            </div>
+       
+        <div class="overflow">
+                <h4 class="activer-ma-buzcard">ACTIVER MA BUZCARD <br> (ou l’essayer gratuitement 30 jours)</h4>
+            </div>
+            <div class="formActivate">
+                <form name="activateForm" ng-submit="activate(avtiveEmail)">
+                    <input type="text" ng-model="avtiveEmail" class="input-login" placeholder="E-mail" required="true" /><span class="input-label"></span>
+                    <div >
+                            <input type="submit" class="button button-light button-login"  menu-close value="OK">
+                    </div>
+                </form>
+			</div>
+		</div>
+    </ion-content>
+</ion-view>

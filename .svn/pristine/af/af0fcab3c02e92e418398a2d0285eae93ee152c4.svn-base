@@ -1,0 +1,126 @@
+<ion-view align-title="center" animation="slide-right-left" >
+    <ion-content overflow-scroll="true" class="has-footer" autofocus>   
+       
+        <!-- ******** begin search form ********-->
+        <div class="buzcard-content contacts-list">
+        <div class="label">
+         <a >Rechercher un contact : </a>
+        </div>
+        
+            <div class="search-contact" >
+                <label class="item-input-wrapper">
+               
+                    <i class="icon ion-ios-search placeholder-icon"></i>
+                    <input type="search" placeholder="par email, nom, prénom..." ng-model="criteria" ng-change="changeHandler(criteria)">
+                </label>
+                <input type="submit" class="button button-light" ng-click="btnSearch(criteria)" value="OK">
+            </div>
+            <div class="sep-input"></div>
+            <!-- ******** fin ******-->
+            <!-- ******** begin search tab ********-->
+            <ion-list class="onglet_premier" ng-if="show">
+                        <ion-item class="onglet_premier item-stable" ng-click="toggleGroup(search)" ng-class="{active: isGroupShown(search)}">
+                            <i class="icon" ng-class="isGroupShown(search) ? 'ion-android-remove-circle' : 'ion-android-add-circle'"></i> &nbsp; {{search.name}}
+                        </ion-item>
+                        <ion-item class="item-accordion" ng-repeat="item in search.items" ng-show="isGroupShown(search)">
+
+                            <!-- **** cas par d�fault ****-->
+
+                            <a class="item item-avatar" ui-sref="app.contactShow({ id: {{item.id}} })" menu-close ng-if="!search.empty">
+                                <img ng-src="{{item.photo}}">
+                                 <p  class="paragraphe_Item" >{{item.date *1000 |date:'dd/MM/yyyy HH:mm '}}</p>
+                                <h4 ng-class=" ( item.first_name.length > 0 &&   item.last_name.length > 0) ? 'nothiing' : 'paragraphe_h6'"  >{{item.email}}</h4>
+                               
+                            </a>
+                            <!-- fin-->
+                        </ion-item>
+                        <a class="item item-avatar pas_de_contact" href="#" ng-show="search.empty && isGroupShown(search)">
+                            <p>Aucune correspondance</p>
+                        </a>
+            </ion-list>
+            <!-- end search -->
+            <ion-list>
+                <!-- ******** begin  tabs for all contacts and followers ********-->
+                <div ng-repeat="tab in tabs">
+                    <ion-item ng-class="{onglet_premier : tab.id !=1 && !show}" class="item-stable" ng-click="toggleGroup(tab)" ng-class="{active: isGroupShown(tab)}">
+                        <i class="icon" ng-class="isGroupShown(tab) ? 'ion-android-remove-circle' : 'ion-android-add-circle'"></i> &nbsp; {{tab.name}} ({{tab.count}})
+                    </ion-item>
+                    <ion-item class="item-accordion" ng-repeat="item in tab.items" ng-show="isGroupShown(tab)">
+
+                        <!-- **** cas par d�fault ****-->
+                        <a class="item item-avatar pas_de_contact" href="#" ng-show="tab.empty">
+                            <p ng-show="tab.id !=2">Pas de contact &agrave; afficher</p>
+                        </a>
+                        <a class="item item-avatar" ui-sref="app.contactShow({ id: {{item.id}} })" menu-close ng-if="!tab.empty">
+                            <img  ng-src="{{item.photo}}">
+                              <p  class="paragraphe_Item" >{{item.date *1000 |date:'dd/MM/yyyy HH:mm '}}</p>
+                             <h4 ng-class=" ( item.first_name.length > 0 &&   item.last_name.length > 0) ? 'nothiing' : 'paragraphe_h6'"  >{{item.email}}</h4>
+                            </a>
+
+                        <!-- fin-->
+                    </ion-item>
+                     
+
+                    <div ng-show="tab.id !=2  && isGroupShown(tab) && !tab.empty && tab.totalPages >1" class="button-bar pagination-listcontact">
+                        <a class="button ion-chevron-left" ng-click="rewind({{tab.id}})"></a>
+                        <a class="button ">{{tab.page}}/{{tab.totalPages}}</a>
+                        <a class="button ion-chevron-right" ng-click="forward({{tab.id}})"></a>
+                    </div>
+                </div>
+                <!-- ******** fin ********-->
+                <!-- ******** begin tabs for groups ********-->
+                <div>
+                    <ion-item class="item-stable" ng-click="toggleGroup(groups)" ng-class="{active: isGroupShown(groups)}">
+                        <i class="icon" ng-class="isGroupShown(groups) ? 'ion-android-remove-circle' : 'ion-android-add-circle'"></i> &nbsp; Mes groupes ({{groupNumber}})
+                    </ion-item>
+                    <ion-item class="item-accordion" ng-repeat="item in groups" ng-show="isGroupShown(groups)">
+                        <!--  second level -->
+                        <ion-item class="item-stable item-grp" ng-click="toggleGroupX(item)" ng-class="{active: isGroupShownX(item)}">
+                            <i class="icon" ng-class="isGroupShownX(item) ? 'ion-android-remove-circle' : 'ion-android-add-circle'"></i> &nbsp; {{item.name}}
+                        </ion-item>
+                        <ion-item class="item-accordion" ng-repeat="itemx in item.items" ng-show="isGroupShownX(item)">
+                            <a class="item item-avatar pas_de_contact" href="#" ng-show="tab.empty">
+                                <p ng-show="tab.id !=2">Pas de contact &agrave; afficher</p>
+                            </a>
+                            <a class="item item-avatar" ui-sref="app.contactShow({ id: {{itemx.id}} })" menu-close ng-if="!tab.empty">
+                                <img ng-src="{{itemx.photo}}">
+                                    <p  class="paragraphe_Item" >{{itemx.date *1000 |date:'dd/MM/yyyy HH:mm '}}</p>
+                                <h4 ng-class=" ( itemx.first_name.length > 0 &&   itemx.last_name.length > 0) ? 'nothiing' : 'paragraphe_h6'"  >{{itemx.email}}</h4>
+                               
+                            </a>
+                        </ion-item>
+                        <!--  second level end -->
+                    </ion-item>
+                </div>
+                <!-- ******** End ********-->
+                <!-- ******** begin tabs for recontact ********-->
+                <div>
+                    <div>
+                        <ion-item class="item-stable" ng-click="toggleGroup(recontact)" ng-class="{active: isGroupShown(recontact),onglet_dernier: !isGroupShown(recontact)}">
+                            <i class="icon" ng-class="isGroupShown(recontact) ? 'ion-android-remove-circle' : 'ion-android-add-circle'"></i> &nbsp; {{recontact.name}} ({{recontact.count}})
+                        </ion-item>
+                        <ion-item ng-class="{'onglet_dernier':$last}" class=" item-accordion" ng-repeat="item in recontact.items" ng-show="isGroupShown(recontact)">
+                            
+                            <a  class="item item-avatar" ui-sref="app.contactShow({ id: {{item.id}} })" menu-close ng-if="!recontact.empty">
+                                <img ng-src="{{item.photo}}">
+                                 <p  class="paragraphe_Item" >{{item.date *1000 |date:'dd/MM/yyyy HH:mm '}}</p>
+                             <h4 ng-class=" ( item.first_name.length > 0 &&   item.last_name.length > 0) ? 'nothiing' : 'paragraphe_h6'"  >{{item.email}}</h4>
+                            </a>
+                            <!-- fin-->
+                        </ion-item>
+                        <!-- **** cas ou il y a pas de contact ****-->
+                        <a class="item item-avatar onglet_dernier pas_de_contact" href="#" ng-show="recontact.empty && isGroupShown(recontact)">
+                            <p>Pas de rendez vous &agrave; afficher</p>
+                        </a>
+                    </div>
+                </div>
+                <!-- ******** End ********-->
+            </ion-list>
+            <div>
+            <div class="creditParainage" ng-hide="creditParrainage ==0">
+				<button class="button button-outline button-light width100"  ui-sref="app.creditParrainage" menu-close>Mon crédit parrainage : <span>{{creditParrainage}} </span></button>
+			</div>
+            </div>
+        </div>
+    </ion-content>
+</ion-view>

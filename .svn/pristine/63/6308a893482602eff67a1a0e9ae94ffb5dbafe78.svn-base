@@ -1,0 +1,76 @@
+<ion-view align-title="center" animation="slide-right-left">
+    <ion-content overflow-scroll="true" class="has-footer" autofocus>
+        <div class="list">
+            <div class="send-vcard">
+
+                <label class="label">Entrer l'email de votre interlocuteur : </label>
+                <input type="email" ng-model="email">
+
+                <a class="item  item-icon-right" href="#">
+                Prendre en photo <br>
+						sa carte de visite :
+					<i class="icon ion-camera" ng-click="getPhoto()"></i>
+				</a>
+
+                <label class="item item-input item-select">
+                    <div class="input-label">
+                        - Choisir la langue :
+                    </div>
+                    <select ng-model="selectLang" >
+                    		<option></option>
+                        	<option value="fr" >Français</option>
+							<option value="gsw">&nbsp;&nbsp;Alsacien/Elsässisch</option>
+							<option value="bre">&nbsp;&nbsp;Breton/brezhoneg</option>
+							<option value="cre">&nbsp;&nbsp;Créole/kreyol</option>
+							<option value="nicois">&nbsp;&nbsp;Nissart/Niçois</option>
+							<option value="en">Anglais/English</option>
+							<option value="ar">Arabe/العربية</option>
+							<option value="da">Danois/Dansk</option>
+							<option value="de">Allemand/Deutsch</option>
+							<option value="gre">Grec/Ελληνικά</option>
+							<option value="he">Hebreu/עִבְרִית</option>
+							<option value="it">Italien/Italiano</option>
+							<option value="ko">Coréen/한국말</option>
+							<option value="zh">Mandarin/官話</option>
+							<option value="pl">Polonais/język polski</option>
+							<option value="rus">Russe/Русский</option>
+							<option value="es">Espagnol/Español</option>
+							<option value="tur">Turc/Türkçe</option>
+							<option value="sued">Suedois/Svenska</option>
+							<option value="jp">Japonais/日本語</option>
+							<option value="tch">Tchèque/čeština</option>
+							<option value="nor">Norvégien/Norsk</option>
+							<option value="pt">Portugais/Português</option>
+							<option value="ser">Serbo-croate/Srpskohrvatski jezik</option>
+							<option value="fin">Finnois/suomi</option>
+							<option value="urdu">Ourdou/اردو</option>
+                    </select>
+                </label>
+
+                <label class="item item-radio">
+                    <input type="checkbox" checked ng-model="checkFollower">
+                    <div class="item-content">
+                        - Rendre follower :
+                    </div>
+                     <i class="radio-icon " ng-class="checkFollower ? 'ion-android-checkbox-outline' : 'ion-android-checkbox-outline-blank'"></i>
+                    
+                </label>
+                <label class="item item-inputt">
+                    <span class="input-label">- Recontacter vers le :</span>
+                    <input type="date" ng-model="dateRDV">
+                 
+                </label>
+                <div>
+                    <button class="button button-full button-dark" ui-sref="app.buzcard" menu-close>
+                        Retour
+                    </button>
+                    <button class="button button-full button-light" menu-close ng-click="sendBuzcard(email,selectLang,checkFollower,dateRDV)">
+                        Envoyer
+                    </button>
+                </div>
+            </div>
+        </div>
+
+
+    </ion-content>
+</ion-view>

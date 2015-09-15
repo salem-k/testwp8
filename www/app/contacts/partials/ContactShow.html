@@ -1,0 +1,92 @@
+<div class="naviguation"  >
+ 	<a class="left" ui-sref="app.contactList"  nav-direction="back" menu-close>Listes</a>
+ 	<a class="right"   ng-click="updateAndShowContact(contact.id,contact.email)" menu-close>Modifier</a>
+ 	</div>
+<ion-view align-title="center" animation="slide-right-left">
+
+    <ion-content scroll="true" class="has-footer showContactViews">
+   
+ 	<div class="list">
+ 	
+ 	
+ 	
+		   <div class="contact-show">
+		   
+			<table width="100%">
+			
+			    <tr>
+			        <td >
+			        </td>
+			        <td width="100%" align="center">
+			            <a ng-click="openModal()"><img class="showContactPhoto" src="img/photo_top_title.jpg" ng-src="{{contact.photofilelocation}}"></a>
+			        </td>
+			        <td >
+			
+			        </td>
+			    </tr>
+			</table>
+		       
+			<div class="items">
+				<div class="row " ng-if="tmp" >
+				  <div class="col label font13 tmp" >1er buz : </div>
+				  <div class="col col-67 font15 tmp" >{{contact.firstsendemail | toFrFormat}}</div>
+				</div>
+				<div class="row " ng-if="showLast && tmp">
+				  <div class="col label font13 tmp">Dernier buz : </div>
+				  <div class="col col-67 font15 tmp"  >{{contact.lastsendemail | toFrFormat}}</div>
+				</div>
+				<div class="row">
+				  <div class="col label font13 recontactShow">Recontacter autour du :</div>
+				  <div class="col col-67 font15 towLineValue">{{contact.rendez_vous |date:'dd/MM/yyyy' }}</div>
+				</div>
+				<div class="row">
+				  <div class="col label font13">Nom :</div>
+				  <div class="col col-67 font15" >{{contact.last_name |escape}}</div>
+				</div>
+				<div class="row">
+				  <div class="col label font13">Prénom :</div>
+				  <div class="col col-67 font15" >{{contact.first_name |escape}}</div>
+				</div>
+				<div class="row">
+				  <div class="col label font13">E-mail :</div>
+				  <div class="col col-67 truncate font15" ><a class="mail"href="mailto:{{ contact.email}}">{{ contact.email | limitTo: 25 }}{{contact.email.length > 25 ? '...' : ''}}</a></div>
+				</div>
+				<div class="row">
+				  <div class="col label font13">Tel :</div>
+				  <div class="col col-67 font15" >
+				  	<a href="tel:{{contact.phone_1}}">{{contact.phone_1}}</a>
+				  </div>
+				</div>
+				<div class="row">
+				  <div class="col label font13">Tel 2 :</div>
+				  <div class="col col-67 font15" >
+				  	<a href="tel:{{contact.phone_2}}">{{contact.phone_2}}</a>
+				  </div>
+				</div>
+				<div class="row">
+				  <div class="col label font13">Société :</div>
+				  <div class="col col-67 font15" >{{contact.company |escape}}</div>
+				</div>
+				<div class="row">
+				  <div class="col label font13">Groupe :</div>
+				  <div class="col col-67 font15" >{{contact.list |escape}}</div>
+				</div>
+				<div class="row">
+				  <div class="col label font13">Notes :</div>
+				  <div class="col col-67 truncate font15" >{{contact.comment |escape}}</div>
+				</div>
+				<div class="row">
+				  <div class="col label font13">Langue de l'email :</div>
+				  <div class="col col-67 truncate font15 towLineValue" >{{contact.LanguageText}}</div>
+				</div>
+				<div class="row">
+				  <div class="col label font13"></div>
+				  <div class="col col-67 truncate font15" ></div>
+				</div>
+			</div>
+			
+		</div>
+ 	</div>
+ 	 <br><br>
+    </ion-content>
+</ion-view>

@@ -1,0 +1,213 @@
+<ion-view>
+  <ion-content class="padding" class="bar-dark">
+  <a href="javascript:void(0)">TEST Link</a>
+  <h4>ACTIVER OU CREER MA BUZCARD (valable 30 jours)</h4>
+   <div class="list">
+
+<div class="header-vcard item-thumbnail-right">
+   
+      <img src="img/photo_top_title.jpg" width="45%">
+      <h5>Rania </h5>
+      <h5>Wannes</h5>
+	  <div class="accounts">
+					<img data-account="facebook" src="img/facebook.png" style="display: block;">
+					<img data-account="twitter"	src="img/twitter.png" style="display: block;"> 
+					<img data-account="viadeo" src="img/viadeo.png" style="display: block;">
+					<img data-account="delicious" src="img/delicious.png" style="display: block;">
+					
+				</div>
+    </div>
+	<button class="button button-full button-light" ui-sref="login">
+  Envoyer 
+</button>
+<div>
+<div class="row">
+  <div class="col">Organisation</div>
+  <div class="col col-75"id="company">Tunisianit</div>
+</div>
+
+<div class="row">
+  <div class="col">Mobile 1</div>
+  <div class="col col-75" id="mobile_1" >+216 53 920 890</div>
+</div>
+<div class="row">
+  <div class="col">Mobile 2</div>
+  <div class="col col-75" id="mobile_1" >+216 53 920 890</div>
+</div>
+</div>
+
+<div class="list">
+	<input type="text" placeholder="User name">
+</div>
+
+<div class="list">
+    
+    
+  <label class="item item-input">
+    <span class="input-label">Password</span>
+    <input type="password">
+  </label>
+   <label class="item item-input item-stacked-label">
+    <span class="input-label">Email</span>
+    <input type="text" placeholder="john@suhr.com">
+  </label>
+  <li class="item item-toggle">
+    Radio box
+     <label class="toggle toggle-assertive">
+       <input type="checkbox">
+       <div class="track">
+         <div class="handle"></div>
+       </div>
+     </label>
+  </li>
+  <li class="item item-checkbox">
+     <label class="checkbox">
+       <input type="checkbox">
+     </label>
+    Check box
+  </li>
+  <label class="item item-input item-select">
+    <div class="input-label">
+     Select box
+    </div>
+    <select>
+      <option>Blue</option>
+      <option selected>Green</option>
+      <option>Red</option>
+    </select>
+  </label>
+   <ion-list>
+<!--         <div ng-repeat="group in groups"> -->
+<!--           <ion-item class="item-stable" -->
+<!--                     ng-click="toggleGroup(group)" -->
+<!--                     ng-class="{active: isGroupShown(group)}"> -->
+<!--               <i class="icon" ng-class="isGroupShown(group) ? 'ion-minus' : 'ion-plus'"></i> -->
+<!--             &nbsp; -->
+<!--             Group {{group.name}} -->
+<!--           </ion-item> -->
+<!--           <ion-item class="item-accordion item-avatar" -->
+<!--                     ng-repeat="item in group.items" -->
+<!--                     ng-show="isGroupShown(group)"> -->
+<!-- 					 <img src="img/photo_top_title.jpg"> -->
+<!--             {{item}} -->
+<!--           </ion-item> -->
+<!--         </div> -->
+        
+
+		<div  class="edit-vcard">
+			<ion-item class="item-stable">
+				&nbsp;Group 1
+				<i class="ion-arrow-down-b" data-pack="default" data-tags=""></i>
+			</ion-item>
+			<div class="items">
+				<div class="row">
+				  <div class="col label">G1 item1</div>
+				  <div class="col col-75"id="company"><input type="text"></div>
+				</div>
+				<div class="row">
+				  <div class="col label">G1 item2</div>
+				  <div class="col col-75"id="company"><input type="text"></div>
+				</div>
+			</div>
+        </div>
+		<div  class="edit-vcard">
+			<ion-item class="item-stable">
+				&nbsp;Group 2
+				<i class="ion-arrow-down-b" data-pack="default" data-tags=""></i>
+			</ion-item>
+			<div class="items">
+				<div class="row">
+				  <div class="col label">G2 item1</div>
+				  <div class="col col-75"id="company"><input type="text"></div>
+				</div>
+				<div class="row">
+				  <div class="col label">G2 item2</div>
+				  <div class="col col-75"id="company"><input type="text"></div>
+				</div>
+			</div>
+        </div>        
+      </ion-list>
+	  
+	<div class="search-contact bar-header">
+      <label class="item-input-wrapper">
+        <i class="icon ion-ios-search placeholder-icon"></i>
+        <input type="search" placeholder="Search">
+      </label>
+      <button class="button button-light">Ok</button>
+    </div>
+
+   <ion-list>
+		<div  class="contact-group-list">
+			<ion-item class="item-stable item-stable-first">
+				<span class="ion-plus-round" data-pack="default" data-tags="add, include, new, invite, +"></span>
+				&nbsp;Group 1
+			</ion-item>
+			<a class="item item-avatar" href="#">
+			      <img src="img/venkman.jpg">
+			      <h2>Venkman</h2>
+			      <p>Back off, man. I'm a scientist.</p>
+			</a>
+			<a class="item item-avatar" href="#">
+			      <img src="img/venkman.jpg">
+			      <h2>Venkman</h2>
+			      <p>Back off, man. I'm a scientist.</p>
+			</a>
+        </div>
+		<div class="contact-group-list">
+			<ion-item class="item-stable item-stable-last">
+				<span class="ion-plus-round" data-pack="default" data-tags="add, include, new, invite, +"></span>
+				&nbsp;Group 2
+				
+			</ion-item>
+			<a class="item item-avatar" href="#">
+			      <img src="img/venkman.jpg">
+			      <h2>Venkman</h2>
+			      <p>Back off, man. I'm a scientist.</p>
+			</a>
+			<a class="item item-avatar" href="#">
+			      <img src="img/venkman.jpg">
+			      <h2>Venkman</h2>
+			      <p>Back off, man. I'm a scientist.</p>
+			</a>
+        </div>        
+      </ion-list>
+	<button class="button button-outline button-light width100">button-balanced</button>
+	<form name="formUpload" enctype="multipart/form-data">
+				<input type="file" onclick="return false;" data-theme="a" name="photo" style="display:none;">
+	</form>
+	<a class="item  item-icon-right" href="#">
+		Capture photo
+		<i class="icon ion-camera"></i>
+	</a>
+	<a class="item item-icon-left" href="#">
+		<i class="icon ion-ios-cloud-upload-outline"></i>
+		Choose file
+	</a>
+<div class="contact-edit">
+	<div class="items">
+		<div class="row">
+		  <div class="col label">G1 item1</div>
+		  <div class="col col-75" id="company"><input type="text"></div>
+		</div>
+	</div>
+</div>
+ <div>
+
+<a class="button icon-left ion-chevron-left button-clear button-dark">Back</a><br>
+
+<button class="button icon ion-gear-a"></button>
+<a class="button button-icon icon ion-settings"></a>
+<a class="button button-outline icon-right ion-navicon button-light">Reorder</a>
+</div>
+  <div class="button-bar">
+  <a class="button">First</a>
+  <a class="button">Second</a>
+  <a class="button">Third</a>
+</div>
+</div>
+  
+
+
+</div>
+  </ion-content>
+</ion-view>

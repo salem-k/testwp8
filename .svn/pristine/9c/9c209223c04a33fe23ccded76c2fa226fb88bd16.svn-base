@@ -1,0 +1,61 @@
+appContext.controller('BuzcardController', [
+    'BuzcardService',
+    'cameraService',
+    '$scope',
+    '$state', 
+    '$ionicPlatform',
+    '$cordovaSQLite',
+    '$rootScope',
+    'LoadingService','$ionicHistory',
+    function(BuzcardService, cameraService, $scope, $state, $ionicPlatform,
+            $cordovaSQLite, $rootScope,LoadingService,$ionicHistory) {
+
+      var db = null;
+
+      $ionicPlatform.ready(function() {
+        /**
+         * create/open DB
+         */
+        if (window.cordova) {
+          db = $cordovaSQLite.openDB("buzcard.db"); // device
+        } else {
+          db = window.openDatabase("buzcard.db", '1', 'my', 1024 * 1024 * 10); // browser
+        }
+        showInfos();
+      });
+
+      /**
+       * get infos profil
+       */
+      // TODO FIXME ng-repeat view buzcard.html
+      function showInfos() {
+    	//avant d'afficher la page afficher la page loading
+    	  $ionicHistory.clearHistory();
+    	LoadingService.loading("Chargement...");
+        BuzcardService.selectProfile(db, function(result) {
+          // TODO FIXME ng-repeat view buzcard
+        	
+        	if(result.rows.length >0)
+        	{
+        		var profil = result.rows.item(0);
+        		$scope.infos = profil;
+                $scope.infos.address= profil.address_line_1 +' '+profil.address_line_2+' '+
+                profil.address_line_3+' '+profil.postal_code+' \n '+profil.city+' '+profil.country;
+                if (profil.photolocation != "") {
+                  $rootScope.fileLocaltion = profil.photolocation.substr(2,
+                          profil.photolocation.lastIndexOf('/') - 1);
+                }
+
+                $rootScope.idProfil = profil.id;
+                cameraService.checkExistFile(profil.id, 'portrait.jpg',function(url) {
+                          $scope.photoProfil = url + '?' + new Date().getTime(); // "img/photo_top_title.jpg";
+                       //just aprés que les données soit charger afficher l ecran
+                       LoadingService.dismiss();
+                });
+                LoadingService.dismiss();
+        	}
+          
+
+        });
+      }
+    }]);

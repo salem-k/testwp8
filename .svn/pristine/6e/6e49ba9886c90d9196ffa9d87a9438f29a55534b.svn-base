@@ -1,0 +1,94 @@
+<ion-view align-title="center" animation="slide-right-left" hide-back-button="true">
+    <ion-content overflow-scroll="true" class="has-footer" autofocus>
+        <div class="sep-header"></div>
+ 	<div class="list buzcard-content">
+		   <div class="contact-edit">
+		    <div class="header-contact hide-on-keyboard-open">
+		       <img  id="profil2" ng-src="{{photoProfil}}">
+		    </div>
+		   <div class="capture-camera">
+                    <div class="row">
+                        <div class="col-80">
+                            <form name="formUpload" enctype="multipart/form-data">
+                                <div id="uploadImage">
+                                    <input ng-click="choseFile()" type="file" onclick="return false;" name="photo">
+                                </div>
+                            </form>
+                        </div>
+                        <div class="col-14">
+                            <a class="button button-icon icon ion-camera" ng-click="getPhoto()"></a>
+                        </div>
+                    </div>
+                </div>
+			
+		    <br>
+			
+			<div class="items">
+				<div class="row">
+				  <div class="col label erbuz"><span>1er BUZ : </span></div>
+				  <div class="col col-67 erbuz"><span>{{contact.date *1000 | date:'dd/MM/yyyy HH:mm '}}</span></div>
+				</div>
+				<div class="row">
+				  <div class="col label"><span>Recontacter autour du :</span></div>
+				  <div class="col col-67"><input  ng-model="contact.rendez_vous" type="date" ></div>
+				</div>
+				<div class="row">
+				  <div class="col label"><span>Nom :</span></div>
+				  <div class="col col-67" ><input  ng-model="contact.last_name"  type="text" ></div>
+				</div>
+				<div class="row">
+				  <div class="col label"><span>Prénom :</span></div>
+				  <div class="col col-67" ><input ng-model="contact.first_name" type="text"></div>
+				</div>
+				<div class="row">
+				  <div class="col label"><span>E-mail :</span></div>
+				  <div class="col col-67" ><input ng-model="contact.email" type="text"></div>
+				</div>
+				<div class="row">
+				  <div class="col label"><span>Tel :</span></div>
+				  <div class="col col-67" ><input ng-model="contact.phone_1" type="text"></div>
+				</div>
+				<div class="row">
+				  <div class="col label"><span>Tel 2 :</span></div>
+				  <div class="col col-67" ><input ng-model="contact.phone_2" type="text"></div>
+				</div>
+				<div class="row">
+				  <div class="col label"><span>Société :</span></div>
+				  <div class="col col-67" ><input ng-model="contact.company" type="text"></div>
+				</div>
+				<div class="row">
+				  <div class="col label"><span>Groupe :</span></div>
+				  <div class="col col-67" >
+				  <select id="groupeId"  ng-model="contact.list" class="item-select"
+						ng-options="group for group in groups" ng-change="changeHandler()">
+						<option></option>
+					</select>
+					<input type="text"  id="newGroupeName" ></div>
+				</div>
+				<div class="row">
+				  <div class="col label"><span>Notes :</span></div>
+				  <div class="col col-67" ><input ng-model="contact.comment"  type="text"></div>
+				</div>
+				<div class="row">
+				<div class="col-90">
+					<button class="button button-light btn-buzcard btn-bottom " menu-close ng-click="updateContact(contact)">
+					Valider
+				</button>
+				</div>
+			
+				
+				</div>
+			</div>
+			
+			<div>
+			 	<button class="button button-dark btn-buzcard btn-bottom" ui-sref="app.contactList" menu-close>
+					Retour
+				</button>
+				<button class="button button-dark btn-buzcard btn-bottom btn-supprimer-contact" menu-close ng-click="deleteContact(contact)">
+					Supprimer
+				</button>
+			</div>
+		</div>
+ 	</div>
+    </ion-content>
+</ion-view>

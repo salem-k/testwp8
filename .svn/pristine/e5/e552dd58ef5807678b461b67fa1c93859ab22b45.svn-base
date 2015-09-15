@@ -1,0 +1,62 @@
+<ion-side-menus enable-menu-with-back-views="false">
+  <ion-side-menu-content drag-content="false">
+<!--   class="has-header has-footer" -->
+    <ion-nav-bar style="display:block;" class="bar-stable nav-title-slide-ios7" ng-class="($state.current.name == &apos;app.buzcard&apos; || $state.current.name == &apos;app.buzcardSend&apos; || $state.current.name == &apos;app.buzcardEdit&apos;) ? &apos;header-active&apos; : &apos;header--&apos;"  ng-if="$state.current.name != &apos;app.login&apos; && $state.current.name != &apos;app.synchro&apos; && $state.current.name != &apos;app.loading&apos;">
+		<div class="buttons" style="overflow:hidden;">
+			<button class="button button-icon button-clear ion-navicon btn-menuuu" ng-if="$state.current.name != &apos;app.login&apos; && $state.current.name != &apos;app.synchro&apos; && $state.current.name != &apos;app.loading&apos;"  menu-toggle="left" style="display:block!important;position:absolute;top:0;"></button>
+		</div>
+			<img height="height:27px;" class="img-header" src="img/buzcard-online.png" ng-if="(($state.current.name == &apos;app.buzcard&apos; || $state.current.name == &apos;app.buzcardSend&apos; || $state.current.name == &apos;app.buzcardEdit&apos;)  ) && !(isCusto)"/>
+			<img class="img-header" ng-src="{{imgCusto}}" ng-if="(($state.current.name == &apos;app.buzcard&apos; || $state.current.name == &apos;app.buzcardSend&apos; || $state.current.name == &apos;app.buzcardEdit&apos;) ) && (isCusto)"/>
+			<img height="height:66px;" class="img-header1" src="img/logo-cbc.png"    ng-if="$state.current.name == &apos;app.contactList&apos; || $state.current.name == &apos;app.contactEdit&apos; || $state.current.name == &apos;app.contactShow&apos; || $state.current.name == &apos;app.qrcode&apos; || $state.current.name == &apos;app.commandes&apos; || $state.current.name == &apos;app.creditParrainage&apos;"/>
+    </ion-nav-bar>
+    <div class="sep-header" ng-if="$state.current.name == &apos;app.contactList&apos; || $state.current.name == &apos;app.contactEdit&apos; || $state.current.name == &apos;app.contactShow&apos; || $state.current.name == &apos;app.qrcode&apos; || $state.current.name == &apos;app.commandes&apos; || $state.current.name == &apos;app.creditParrainage&apos;" style="position: relative;top: 63px;z-index: 9999;"></div>
+     	
+     	<div class="naviguation" ng-controller="ContactEditController" ng-if="$state.current.name == &apos;app.contactEdit&apos;">
+		<a class="left"   href="#/app/contactShow/{{contact.id}}"  menu-close>Retour</a>
+		<a class="right"   ng-click="updateContact(contact)"   menu-close>Valider</a>
+	</div>
+    <div class="naviguation navcontactshow" ng-if="$state.current.name == &apos;app.contactShow&apos;" >
+ 	<a class="left" ui-sref="app.contactList"  nav-direction="back" menu-close>Retour</a>
+ 	<a class="right"   ng-click="updateAndShowContact(contact.id,contact.email)" ng-controller="ContactShowController" menu-close>Modifier</a>
+ 	</div>
+
+	
+    <ion-nav-view name="menuContent" ng-class="(isCusto)?'containerIsCusto':''"  ng-class="($state.current.name == &apos;app.buzcard&apos; || $state.current.name == &apos;app.buzcardSend&apos; || $state.current.name == &apos;app.buzcardEdit&apos;) ? &apos;buzcardcontainer&apos; : &apos;contactcontainer&apos;" class="has-header has-footer" animation="slide-left-right" drag-content="false"></ion-nav-view>
+    
+    <ion-footer-bar class="tabs-striped bar-dark footer hide-on-keyboard-open" align-title="bottom" ng-if="$state.current.name != &apos;app.login&apos; && $state.current.name != &apos;app.synchro&apos; && $state.current.name != &apos;app.loading&apos;">
+				<a class="btn-footer-profil tab-item" on-tap="goTo('app.buzcard')"  ng-click="goTo('app.buzcard')" ng-class="($state.current.name == &apos;app.buzcard&apos; || $state.current.name == &apos;app.buzcardEdit&apos; || $state.current.name == &apos;app.buzcardSend&apos;) ? &apos;active&apos; : &apos;&apos;">
+				  <i class="icon ion-card"></i>
+				  Profil
+				</a>
+				<a class="btn-footer-contacts tab-item" on-tap="goTo('app.contactList')" ng-click="goTo('app.contactList')" ng-class="($state.current.name == &apos;app.contactList&apos; || $state.current.name == &apos;app.contactShow&apos; || $state.current.name == &apos;app.contactEdit&apos;) ? &apos;active&apos; : &apos;&apos;">
+				  <i class="icon ion-person-stalker"></i>
+				  Contacts
+				</a>
+				<a class="btn-footer-qrcode tab-item" on-tap="goTo('app.qrcode')" ng-click="goTo('app.qrcode')" ng-class="($state.current.name == &apos;app.qrcode&apos;) ? &apos;active&apos; : &apos;&apos;">
+				  <i class="icon ion-qr-scanner"></i>
+				  Scanner
+				</a>
+				<a class="btn-footer-mabonner tab-item" on-tap="goTo('app.commandes')"  ng-click="goTo('app.commandes')" ng-class="($state.current.name == &apos;app.commandes&apos;) ? &apos;active&apos; : &apos;&apos;">
+				  <i class="icon ion-bag"></i>
+				  M&apos;abonner
+				</a>
+		</ion-footer-bar>
+  </ion-side-menu-content>
+  <ion-side-menu side="left" ng-if="$state.current.name != &apos;app.login&apos; && $state.current.name != &apos;app.synchro&apos; && $state.current.name != &apos;app.loading&apos;">
+   
+    <ion-content class="menu">
+      <ion-list>
+        <ion-item class="item-menu "   menu-close>
+        <ion-item class="item-menu"  menu-close ng-click="creditdeparrainage()">
+          Crédit de parrainage
+        </ion-item>
+         <ion-item class="item-menu"  menu-close  ng-click="synchronize()">
+          Synchroniser
+        </ion-item>
+         <ion-item class="item-menu"  menu-close  ng-click="deconnexion()">
+          Déconnexion
+        </ion-item>
+      </ion-list>
+    </ion-content>
+  </ion-side-menu>
+</ion-side-menus>

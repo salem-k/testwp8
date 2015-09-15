@@ -1,0 +1,3 @@
+<ion-view animation="slide-left-right">
+	<ion-content></ion-content>
+</ion-view>

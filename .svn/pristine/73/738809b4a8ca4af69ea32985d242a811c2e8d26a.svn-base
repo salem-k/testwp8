@@ -1,0 +1,4 @@
+appContext.controller('creditParrainageController', [ function() {
+	
+}]);
+   

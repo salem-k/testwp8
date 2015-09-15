@@ -1,0 +1,320 @@
+appContext.controller('BuzcardEditController', [
+    'BuzcardService',
+    'cameraService',
+    '$scope',
+    '$state',
+    '$ionicPlatform',
+    '$cordovaSQLite',
+    '$cordovaFile',
+    'LoadingService',
+    '$ionicHistory',
+    'ConnectionService',
+    'SynchroServices',
+    '$ionicScrollDelegate',
+    'MenuService',
+    function(BuzcardService, cameraService, $scope, $state, $ionicPlatform,
+        $cordovaSQLite, $cordovaFile, LoadingService,$ionicHistory,ConnectionService,SynchroServices,$ionicScrollDelegate,MenuService) {
+    	
+    	if(MenuService.getLocalStorage("customisation")){
+    		var custoArray = MenuService.getLocalStorage("customisation");
+    		$scope.firstColor = custoArray[3];
+    	}
+    	
+        var db = null;
+        var tmpProfil ={};
+        $ionicPlatform.ready(function() {
+            /**
+             * create/open DB
+             */
+            if (window.cordova) {
+                db = $cordovaSQLite.openDB("buzcard.db"); // device
+            } else {
+                db = window.openDatabase("buzcard.db", '1', 'my', 1024 * 1024 * 10); // browser
+            }
+            showInfos();
+        });
+
+        /**
+         * get infos profil
+         */
+        function showInfos() {
+            BuzcardService.selectProfile(db, function(result) {
+            	var isWindowsPhone = ionic.Platform.isWindowsPhone();
+                var profil = result.rows.item(0);
+                $scope.infos = profil;
+                tmpProfil =angular.copy(result.rows.item(0));
+                
+                cameraService.checkExistFile('imgThumbnail.jpg',
+                    function(url) {
+                	if (isWindowsPhone) {
+                    	$scope.photoProfil = url; // "img/photo_top_title.jpg";
+                    }else{
+                    	$scope.photoProfil = url+ '?' + new Date().getTime(); // "img/photo_top_title.jpg";	
+                    }
+                	
+                        
+                    });
+                // activer l'onglet coordonnées par defaut
+                $scope.isSelectedCordonnees = true;
+            });
+            LoadingService.dismiss();
+        };
+
+        /**
+         * capture photo
+         */
+        $scope.getPhoto = function() {
+        	
+            var options = {
+                quality: 50,
+                destinationType: Camera.DestinationType.FILE_URI,
+                sourceType: Camera.PictureSourceType.CAMERA,
+                encodingType: Camera.EncodingType.JPEG,
+                targetWidth: 500,
+                targetHeight: 500,
+                correctOrientation: true,
+                popoverOptions: CameraPopoverOptions
+               
+            };
+            cameraService.getPicture(options).then(function(imageURI) {
+            	LoadingService.loading("Envoi de la photo en cours...");
+                var fileName = 'imgThumbnail.jpg';
+                $scope.photoProfil = imageURI;
+                var isWindowsPhone = ionic.Platform.isWindowsPhone();
+                cameraService.RenamePicture(fileName, imageURI, function(url) {
+                	
+                	var imageURL =imageURI.substr(0, imageURI.lastIndexOf('?'));
+                    if (imageURL =='') {
+                     imageURL = imageURI;
+                    }else{
+                     imageURL = imageURI.substr(0, imageURI.lastIndexOf('?'));
+                    }
+                    
+                	if (isWindowsPhone) {
+                    	$scope.photoProfil = url; // "img/photo_top_title.jpg";
+                    }else{
+                    	$scope.photoProfil = url+ '?' + new Date().getTime(); // "img/photo_top_title.jpg";	
+                    }
+                    ConnectionService.isConnected(db,function() {
+                    //cas il ya connection 
+                    BuzcardService.uploadPhotoProfil(url, function() {
+                    	LoadingService.dismiss();
+                        console.log('success upload PHOTO');
+                    }, function(){
+                    	LoadingService.dismiss();
+                  	  console.log('erreur upload photo buzcard');
+                    });
+                    },function(){
+                    	// cas pas de connection
+                    	 SynchroServices.insertRequest(db, "BUZCARDPHOTO", {path:url}, function() {
+                    		 console.log('Request inserted BUZCARDPHOTO');
+                         });
+                    });
+                });
+            }, function(err) {
+                console.error(err);
+            });
+        };
+        /**
+         * choose file from library
+         */
+        $scope.choseFile = function() {
+        	
+        	  var options = {
+                      quality: 100,
+                      destinationType: Camera.DestinationType.FILE_URI,
+                      sourceType: Camera.PictureSourceType.PHOTOLIBRARY,
+                      encodingType: Camera.EncodingType.JPEG,
+                      targetWidth: 500,
+                      targetHeight: 500,
+                      correctOrientation: true,
+                      popoverOptions: CameraPopoverOptions
+                  };
+
+            cameraService.getPicture(options).then(function(imageURI) {
+            	LoadingService.loading("Envoi de la photo en cours...");
+                var fileName = 'imgThumbnail.jpg';
+                $scope.photoProfil = imageURI;
+                var isWindowsPhone = ionic.Platform.isWindowsPhone();
+                var imageURL =imageURI.substr(0, imageURI.lastIndexOf('?'));
+                if (imageURL =='') {
+                 imageURL = imageURI;
+                }else{
+                 imageURL = imageURI.substr(0, imageURI.lastIndexOf('?'));
+                }
+               
+                cameraService.RenamePicture(fileName, imageURL, function(url) {
+                	if (isWindowsPhone) {
+                    	$scope.photoProfil = url; // "img/photo_top_title.jpg";
+                    }else{
+                    	$scope.photoProfil = url+ '?' + new Date().getTime(); // "img/photo_top_title.jpg";	
+                    }
+                    ConnectionService.isConnected(db,function() {
+                    	//cas ou il ya connexion 
+                    	  BuzcardService.uploadPhotoProfil(url, function() {
+                    		  LoadingService.dismiss();
+                              console.log('success upload PHOTO');
+                          }, function(){
+                        	  LoadingService.dismiss();
+                          	  console.log('erreur upload photo buzcard');
+                          });
+                    },function(){
+                    	// cas pas de connexion 
+                    	 SynchroServices.insertRequest(db, "BUZCARDPHOTO", {path:url}, function() {
+                    		 console.log('Request inserted BUZCARDPHOTO');
+                    });
+                  
+                 });
+                });
+            }, function(err) {
+                console.error(err);
+            });
+
+        };
+
+        /**
+         * update infos profil
+         */
+        $scope.updateProfile = function() {
+         
+            LoadingService.loading("Mise à jour du profil en cours...");
+            BuzcardService.updateProfil(db, $scope.infos, function(profil) {
+           
+            });
+
+            ConnectionService.isConnected(db,function() {
+                //cas ou il y a de connection
+              
+                /***********************\
+                 préparation de l'objet 
+                \***********************/
+                var profilObj = {};
+                for (var key in tmpProfil)
+                   if($scope.infos[key] != tmpProfil[key])
+                     profilObj[key] =$scope.infos[key];
+                //if there is no difference (no modification)
+                if (isEmpty(profilObj)) {
+                  LoadingService.dismiss();
+                  $state.go("app.buzcard", {}, {reload: true});
+                } else {
+                  BuzcardService.updateProfilServer(0, profilObj, function(data) {
+                    if (data.response.status == 0) {
+                      LoadingService.dismiss();
+                      $state.go("app.buzcard", {}, {reload: true});
+
+                    } else {
+                        LoadingService.error("Une erreur est survenue lors synchronisation", "BuzcardEditController");
+                    }
+
+                }, function(status) {
+                    LoadingService.error("Une erreur réseau est survenue ", "BuzcardEditController");
+                });
+                }
+
+                
+            }, function() {
+              
+           // cas s'il pas de connection
+              /***********************\
+               préparation de l'objet 
+              \***********************/
+              var profilObj = {};
+              for (var key in tmpProfil)
+                  if ($scope.infos[key] != tmpProfil[key])
+                      profilObj[key] = $scope.infos[key];
+                  //if there is no modification 
+              if (!isEmpty(profilObj)) {
+                  SynchroServices.insertRequest(db, "BUZCARDEDIT", {profile:profilObj} , function() {
+                      LoadingService.dismiss();
+                      $state.go("app.buzcard", {}, {reload: true});
+                  });
+              }
+              //buzcard modified
+              else {
+                  LoadingService.dismiss();
+                  $state.go("app.buzcard", {}, {reload: true});
+              }
+              });
+
+        };
+
+        /**
+         * select l'onglet actif
+         */
+        $scope.selectElement = function(element,event) {
+
+            if (element == 'Coordonnes') {
+                if ($scope.isSelectedCordonnees) {
+                    $scope.isSelectedCordonnees = false;
+                } else {
+                    $scope.isSelectedCordonnees = true;
+                    $scope.isSelectedAdresse = false;
+                    $scope.isSelectedrxSociaux = false;
+                    $scope.isSelectedLink = false;
+                    $scope.isSelectedNews = false;
+                }
+
+            } else if (element == 'Adresse') {
+                if ($scope.isSelectedAdresse) {
+                    $scope.isSelectedAdresse = false;
+                } else {
+                    $scope.isSelectedAdresse = true;
+                    $scope.isSelectedCordonnees = false;
+                    $scope.isSelectedrxSociaux = false;
+                    $scope.isSelectedLink = false;
+                    $scope.isSelectedNews = false;
+                }
+
+            } else if (element == 'rxSociaux') {
+                if ($scope.isSelectedrxSociaux) {
+                    $scope.isSelectedrxSociaux = false;
+                } else {
+                    $scope.isSelectedAdresse = false;
+                    $scope.isSelectedCordonnees = false;
+                    $scope.isSelectedrxSociaux = true;
+                    $scope.isSelectedLink = false;
+                    $scope.isSelectedNews = false;
+                }
+
+            } else if (element == 'link') {
+                if ($scope.isSelectedLink) {
+                    $scope.isSelectedLink = false;
+                } else {
+                    $scope.isSelectedAdresse = false;
+                    $scope.isSelectedCordonnees = false;
+                    $scope.isSelectedrxSociaux = false;
+                    $scope.isSelectedLink = true;
+                    $scope.isSelectedNews = false;
+                }
+
+            } else if (element == 'news') {
+                if ($scope.isSelectedNews) {
+                    $scope.isSelectedNews = false;
+                } else {
+                    $scope.isSelectedAdresse = false;
+                    $scope.isSelectedCordonnees = false;
+                    $scope.isSelectedrxSociaux = false;
+                    $scope.isSelectedLink = false;
+                    $scope.isSelectedNews = true;
+                }
+                
+            }
+            $ionicScrollDelegate.scrollTo(0, event.layerY,false);
+        };
+
+        $scope.dismiss = function() {
+            LoadingService.dismiss();
+        };
+        
+        function isEmpty(value){
+          return Boolean(value && typeof value == 'object') && !Object.keys(value).length;
+        };
+        $scope.keyPressed = function(keyEvent) {
+            if (keyEvent.keyCode == 13) {
+              
+               cordova.plugins.Keyboard.close();
+            }
+        };
+
+    }
+]);

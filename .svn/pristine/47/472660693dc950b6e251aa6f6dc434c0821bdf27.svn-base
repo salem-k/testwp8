@@ -1,0 +1,272 @@
+appContext.controller("UpdateController", ['$scope', '$state', '$rootScope', 'MenuService', 'ConnectionService', 'LoadingService', 'BuzcardService', 'ContactsService', '$ionicPlatform','$ionicHistory','$cordovaSQLite','$location', function($scope, $state, $rootScope, MenuService, ConnectionService, LoadingService, BuzcardService, ContactsService, $ionicPlatform,$ionicHistory,$cordovaSQLite,$location) {
+
+
+    /**
+     * create/open DB
+     */
+    var db = null;
+    $ionicPlatform.ready(function() {
+
+
+        if (window.cordova) {
+            db = $cordovaSQLite.openDB("buzcard.db"); // device
+        } else {
+            db = window.openDatabase("buzcard.db", '1', 'my', 1024 * 1024 * 10); // browser
+        };
+    });
+    /**
+     * click on button Annuler (popup synchronisation)
+     */
+    $scope.no = function() {
+        LoadingService.dismiss();
+    };
+
+    /**
+     * click on button ok (pop up synchronisation )
+     */
+    $scope.yes = function() {
+
+        /**€€€€€€€
+         *  begin synchronisation
+         €€€€€€€*/
+        LoadingService.loading("Synchronisation serveur en cours...");
+        var dateSynchronisation = MenuService.getLocalStorage("dateSynchronisation");
+        
+        if (dateSynchronisation != false) {
+
+            ConnectionService.isConnected(db, function() {
+
+                BuzcardService.getProfil().success(function(data, status, headers, config) {
+                    if (data != "") {
+                        var profil = data.response.virtual_card;
+                        console.log(profil);
+                        $rootScope.fileLocaltion = profil.photofilelocation.substr(2, profil.photofilelocation.lastIndexOf('/') - 1);
+                        $rootScope.idProfil = profil.id;
+
+                        BuzcardService.updateProfil(db, data.response.virtual_card, function() {
+
+                            //LoadingService.loading("Chargement de la photo...");
+                            BuzcardService.downloadPhotoProfil(profil.photofilelocation, profil.id, function(url) {
+                                //get from server and persist 
+                                ContactsService.getContactsEdited().success(function(data, status, headers, config) {
+                                    var nbContacts = 0;
+
+                                    if (data.contacts.contact instanceof Array) {
+                                        nbContacts = data.contacts.contact.length;
+                                        console.log("++++++++" + data.contacts.contact);
+                                    } else if (data.contacts.contact instanceof Object) {
+                                        nbContacts = 1;
+                                        console.log("+++++" + data.contacts.contact);
+                                    }
+                                    if (nbContacts == 0) {
+
+                                        var dateSynchronisation = MenuService.getDateUS();
+                                        MenuService.setLocalStorage("dateSynchronisation", dateSynchronisation);
+                                        LoadingService.dismiss();
+                                        MenuService.setLocalStorage('ReloadContactList', 1);
+
+//                                        $ionicHistory.nextViewOptions({
+//                                            disableBack: true
+//                                        });
+                                        //$ionicHistory.clearCache();
+//                                        $ionicHistory.clearHistory();
+                                        console.warn($state.current.name=="app.buzcard");
+                                        if($state.current.name=="app.buzcard")
+                                        	$state.go($state.current, {}, {reload: true});
+                                        else
+                                        	$state.go("app.buzcard", {}, {reload: true});
+
+                                    } else {
+                                        ContactsService.insertOrUpdateContacts(db, 0, nbContacts, data.contacts.contact, function() {
+                                            // empty group table
+                                            ContactsService.downloadPhotoContactsAtSynchro(db, data.contacts.contact, function() {
+                                                ContactsService.emptyGroupTable(db, function() {
+                                                    // get data from server
+                                                    ContactsService.getGroup().success(function(data, status, headers, config) {
+
+                                                        if (data.lists.list instanceof Array) {
+                                                            // insert into group table
+                                                                ContactsService.insertBulkGroupe(db, data.lists.list, function() {
+                                                                ContactsService.getCreditParrainage(function(credit) {
+                                                                    MenuService.setLocalStorage("credit", credit);
+                                                                    var dateSynchronisation = MenuService.getDateUS();
+                                                                    MenuService.setLocalStorage("dateSynchronisation", dateSynchronisation);
+
+                                                                    LoadingService.dismiss();
+                                                                    MenuService.setLocalStorage('ReloadContactList', 1);
+//                                                                    $ionicHistory.nextViewOptions({
+//                                                                        disableBack: true
+//                                                                    });
+//                                                                    $ionicHistory.clearHistory();
+                                                                    //rafraichir la page contact list
+                                                                    MenuService.setLocalStorage('ReloadContactList', 1);
+                                                                    console.warn($state.current.name=="app.buzcard");
+                                                                    if($state.current.name=="app.buzcard")
+                                                                    	$state.go($state.current, {}, {reload: true});
+                                                                    else
+                                                                    	$state.go("app.buzcard", {}, {reload: true});
+                                                                    //                                                                  });
+
+                                                                });
+                                                            });
+                                                        } else {
+                                                            ContactsService.insertIntoGroupTable(db, data.lists.list, function() {
+
+                                                                ContactsService.getCreditParrainage(function(credit) {
+                                                                    MenuService.setLocalStorage("credit", credit);
+                                                                    var dateSynchronisation = MenuService.getDateUS();
+                                                                    MenuService.setLocalStorage("dateSynchronisation", dateSynchronisation);
+                                                                    LoadingService.dismiss();
+                                                                    MenuService.setLocalStorage('ReloadContactList', 1);
+//                                                                    $ionicHistory.nextViewOptions({
+//                                                                        disableBack: true
+//                                                                    });
+//                                                                    $ionicHistory.clearHistory();
+                                                                    MenuService.setLocalStorage('ReloadContactList', 1);
+                                                                    if($state.current.name=="app.buzcard")
+                                                                    	$state.go($state.current, {}, {reload: true});
+                                                                    else
+                                                                    	$state.go("app.buzcard", {}, {reload: true});
+                                                                });
+
+                                                            });
+
+                                                        }
+                                                    }).error(function(data, status, headers, config) {
+                                                        console.log("error " + status);
+                                                        // TODO FIXME
+                                                    });
+
+                                                });
+
+
+
+                                            });
+                                        });
+
+                                    }
+
+                                }).error(function(data, status, headers, config) {
+                                    console.log("error " + status);
+                                    // TODO FIXME
+                                });
+
+                            });
+                        });
+                    } else {
+                        console.info("data empty");
+                        //get from server and persist 
+                        ContactsService.getContactsEdited().success(function(data, status, headers, config) {
+                            var nbContacts = 0;
+                            if (data.contacts.contact instanceof Array) {
+                                nbContacts = data.contacts.contact.length;
+                                console.log("=========" + data.contacts.contact);
+                            } else if (data.contacts.contact instanceof Object) {
+                                nbContacts = 1;
+                                console.log("======");
+                                console.log(data.contacts.contact);
+                            }
+                            if (nbContacts == 0) {
+                                console.log("there is no contacts");
+                                var dateSynchronisation = MenuService.getDateUS();
+                                MenuService.setLocalStorage("dateSynchronisation", dateSynchronisation);
+                                ContactsService.getCreditParrainage(function(credit) {
+                                    MenuService.setLocalStorage("credit", credit);
+                                    var dateSynchronisation = MenuService.getDateUS();
+                                    MenuService.setLocalStorage("dateSynchronisation", dateSynchronisation);
+                                    LoadingService.dismiss();
+//                                    $ionicHistory.nextViewOptions({
+//                                        disableBack: true
+//                                    });
+                                    //$ionicHistory.clearCache();
+                                    $state.go("app.buzcard");
+                                });
+
+                            } else {
+                                console.log("there is contacts");
+                                var contactDataServer = data.contacts.contact;
+                                ContactsService.insertOrUpdateContacts(db, 0, nbContacts, contactDataServer, function() {
+                                    // empty group table
+                                    console.error(JSON.stringify(contactDataServer));
+                                    ContactsService.downloadPhotoContactsAtSynchro(db, contactDataServer, function() {
+                                        ContactsService.emptyGroupTable(db, function() {
+                                            // get data from server
+                                            ContactsService.getGroup().success(function(data, status, headers, config) {
+                                                console.error("get group d'accord.....");
+                                                if (data.lists.list instanceof Array) {
+                                                    console.error("group instance of array.....");
+                                                    // insert into group table
+                                                        ContactsService.insertBulkGroupe(db, data.lists.list, function() {
+                                                        ContactsService.getCreditParrainage(function(credit) {
+                                                            MenuService.setLocalStorage("credit", credit);
+                                                            var dateSynchronisation = MenuService.getDateUS();
+                                                            MenuService.setLocalStorage("dateSynchronisation", dateSynchronisation);
+                                                            console.log(data);
+
+                                                            LoadingService.dismiss();
+//                                                            $ionicHistory.nextViewOptions({
+//                                                                disableBack: true
+//                                                            });
+                                                            //$ionicHistory.clearCache();
+//                                                            $ionicHistory.clearHistory();
+                                                            //rafraichir la page contact list
+                                                            MenuService.setLocalStorage('ReloadContactList', 1);
+                                                            $state.go("app.buzcard");
+                                                            //                                                        });
+                                                        });
+                                                    });
+
+                                                } else {
+                                                    ContactsService.insertIntoGroupTable(db, data.lists.list, function() {
+                                                        ContactsService.getCreditParrainage(function(credit) {
+                                                            MenuService.setLocalStorage("credit", credit);
+                                                            var dateSynchronisation = MenuService.getDateUS();
+                                                            MenuService.setLocalStorage("dateSynchronisation", dateSynchronisation);
+                                                            //                                                      ContactsService.downloadPhotoContactsAtSynchro(db,contactDataServer, function(){
+                                                            LoadingService.dismiss();
+//                                                            $ionicHistory.nextViewOptions({
+//                                                                disableBack: true
+//                                                            });
+                                                            //$ionicHistory.clearCache();
+//                                                            $ionicHistory.clearHistory();
+                                                            //rafraichir la page contact list
+                                                            MenuService.setLocalStorage('ReloadContactList', 1);
+                                                            $state.go("app.buzcard");
+                                                            //                                                    });
+                                                        });
+                                                    });
+                                                }
+                                            }).error(function(data, status, headers, config) {
+                                                console.log("error " + status);
+                                                // TODO FIXME
+                                            });
+
+                                        });
+
+                                    });
+                                });
+                            }
+
+                        }).error(function(data, status, headers, config) {
+                            console.log("error " + status);
+                            // TODO FIXME
+                        });
+
+                    }
+                }).error(function(data, status, headers, config) {
+                    console.log("error " + status);
+                    // TODO FIXME
+                });
+
+            }, function() {
+                LoadingService.error("La connexion est insuffisante ou saturée. <br> Veuillez réessayer ultérieurement.", "MenuController");
+            });
+
+        } else {
+        	alert('date false');
+        	console.log(dateSynchronisation);
+            // $state.go("app.buzcard"); 
+        }
+
+    }
+}]);

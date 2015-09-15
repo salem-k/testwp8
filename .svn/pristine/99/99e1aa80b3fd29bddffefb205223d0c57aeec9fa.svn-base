@@ -1,0 +1,35 @@
+appContext.controller('QrCodeController', ['$scope','$ionicPlatform','$ionicLoading', function($scope,$ionicPlatform,$ionicLoading) {
+
+  /**
+   * scanner un code QR
+   */
+	$ionicPlatform.ready(function() {
+		if( /Android|BlackBerry Mini/i.test(navigator.userAgent) ){ 
+			$scope.txtqrcode = "Pour scanner un QR code, approchez simplement votre smartphone de celui-ci afin que ce code se trouve entièrement dans la zone-cible : le contenu de la page web encodée s’affichera automatiquement.<br/>";
+		} else {
+			$scope.txtqrcode  = "Pour scanner un QR code, commencez par placer votre Iphone devant le code et cliquez sur le bouton ci-dessous<br/>(Si la page web encodée ne s'affiche pas dans les 2 secondes, annulez et recommencez l'opération)";
+		}
+  });
+  $scope.scanBarcode = function() {
+	  $ionicLoading.show({template: 'loading'})
+    cordova.plugins.barcodeScanner.scan(function(result) {
+    	
+    	console.log(result);
+    	console.log(result);
+		
+		if (/Android|BlackBerry Mini/i.test(navigator.userAgent)) {
+			navigator.app.loadUrl(result.text, {
+				openExternal: true
+		    });
+			$ionicLoading.hide();
+		} else {
+			  window.open(result.text, '_system');
+			  $ionicLoading.hide();
+		}
+		
+    }, function(error) {
+    	alert("Erreur de scan: " + error);
+    	$ionicLoading.hide();
+	});
+  };
+}]);

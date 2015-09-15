@@ -1,0 +1,11 @@
+{
+  "name": "Buzcard",
+  "app_id": "ce648d32",
+  "browsers": [
+    {
+      "platform": "android",
+      "browser": "crosswalk",
+      "version": "12.41.296.5"
+    }
+  ]
+}

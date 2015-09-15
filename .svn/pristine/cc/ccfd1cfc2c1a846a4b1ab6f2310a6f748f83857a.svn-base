@@ -1,0 +1,121 @@
+appContext.factory("ExecuteRequests", ['$ionicLoading','LoginService','cameraService','BuzcardService','ContactsService','LoadingService',
+    function($ionicLoading,LoginService,cameraService,BuzcardService,ContactsService,LoadingService) {
+//	doLogin: doLogin,
+//    activateAccount: activateAccount,
+//    emptyIdentifiantTable : emptyIdentifiantTable,
+//    setCredentials: setCredentials,
+//    selectCredentials: selectCredentials,
+//    createIdentifiantTable : createIdentifiantTable,
+
+	var executeRequests = function (callBack){
+		console.log('Succes synchronisation Locale vers Serveur');
+		//var User = userReadLocal();
+		var requests = requestReadLocal();
+		if ( typeof requests !== 'undefined' && requests.length > 0 ) 
+		{
+//			LoadingService.error("Synchronisation serveur...","ContactEditController");
+			var request = requests.shift();
+			switch(request.action){
+				// ------------------------------------------------------//ToBeTested /NotCritical
+			case "activateAccount":
+				
+				break;
+				// ------------------------------------------------------//Tested Once : Ok.
+			case "updateProfile":
+		          BuzcardService.updateProfilServer(0,request.object,function(data){
+		              if (data.response.status ==0) {
+		                LoadingService.dismiss();
+		              } else {
+		                LoadingService.error("Une erreur est servenu lors synchronisation","BuzcardEditController");
+		              }
+		            },function(status){
+		              console.log(status);
+		              LoadingService.error("Une erreur réseau est servenu ","BuzcardEditController");
+		            });
+				
+		          console.log("EXECUTE REQUESTS + update PROFIL");
+				break;
+				// ------------------------------------------------------ //Tested Once : Ok.
+			case "deleteContact": 
+			          ContactsService.deleteContactServer(request.object.contactId,function(data){
+			              if (data.update.status =="done") {
+			                LoadingService.dismiss();
+			                $state.go("contactList");
+			              } else {
+			                LoadingService.error("Une erreur est servenu lors <br> de la synchronisation","ContactEditController");
+			              }
+			            },function(status){
+			              console.error(status);
+			              LoadingService.error("Une erreur réseau est servenu ","ContactEditController");
+			            });
+			          console.log("EXECUTE REQUESTS + DELETE CONTACT");
+				break;
+				// ------------------------------------------------------//Tested Once : Ok.
+			case "updatePhoto":
+//				UploadPhoto(request.object.imageId, function(){
+//				var request = new Object();
+//				request.imageId = filename;
+//				request.formData = imageURI;
+//				requestAddLocal('updatePhoto',request);
+				break;
+				// ------------------------------------------------------//Tested Once : Ok.
+			case "editContact":
+				// TODO SALEM
+//					if( request.object.contactId == "newContact" ) request.object.contactId = contactReadLocalByEmail(request.object.contact_email,'id');
+//							editContact(request.object.contactId, request.object.field,request.object.value, function()	{
+				// SAVE REQUEST HERE
+				// OfflineMode TRUE : Pas d'update du contact depuis le serveur
+				// Il faut sauvegarder la requête pour l'exécuter plus tard
+//				$.mobile.loading( "hide" );
+//				if (debugMode) alert('Offline:ON - Requete: editContactPhoto:');
+//				var request = new Object();
+//				request.formData = imageURI;
+//				request.id = id;
+//				requestAddLocal('editContactPhoto',request);
+			
+				break;
+				// ------------------------------------------------------//Tested Once : Ok.
+			case "editContactPhoto":
+//				if (debugMode) alert('imageId='+request.id);
+//				UploadPhoto(request.object.id, function(){
+				// SAVE REQUEST HERE
+				// OfflineMode TRUE : Pas d'update du contact depuis le serveur
+				// Il faut sauvegarder la requête pour l'exécuter plus tard
+//				$.mobile.loading( "hide" );
+//				if (debugMode) alert('Offline:ON - Requete: editContactPhoto:');
+//				var request = new Object();
+//				request.formData = imageURI;
+//				request.id = id;
+//				requestAddLocal('editContactPhoto',request);
+				break;
+				// ------------------------------------------------------// Mailing: Not operational yet
+			case "sendUpdate":
+//						sendUpdate(request.object[0], request.object[1], function() 
+				break;
+				// ------------------------------------------------------//Tested Once : Ok.
+			case "sendMyBuzCard":
+//				contactsSaved("on");
+//						sendMyBuzCardServer(request.object.emailTo, request.object.makeFollower, request.object.lang,request.object.dateRDV, function()
+				// alert('cas echec loadNewContact après buzcardSend');
+				//on ne retrouve pas l'email, donc on stock la requete buzcard send 
+//				var request = new Object();
+//				request.emailTo =emailTo;
+//				request.lang=lang;
+//				request.makeFollower=makeFollower;
+//				request.dateRDV=dateRDV;
+//				requestAddLocal('sendMyBuzCard',request);
+				break;
+				// ------------------------------------------------------
+				default:
+					console.log('+++++++++++++ REQUEST: Default action : none +++++++++++++');
+			}
+		}else{
+			if (requests.length < 1 ) syncIsNeeded("off");
+//			LoadingService.dismiss();
+			return callBack();
+		}
+	};
+  return {
+	  executeRequests : executeRequests,
+  };
+}]);

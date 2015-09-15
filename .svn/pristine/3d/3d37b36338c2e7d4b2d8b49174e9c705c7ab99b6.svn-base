@@ -1,0 +1,27 @@
+<ion-view align-title="center" animation="slide-right-left">
+	<ion-content scroll="true" class="has-footer">
+		<div class="buzcard-content">
+		<p class="para">Chacun de vos contacts peut vous rapporter 10€ de crédit sur Buzcard…</p>
+
+<p class="para">sans rien avoir à lui demander !<br><br></p>
+
+<p class="para">Comment diable réalisons-nous ce parrainage automatique ?<br><br></p>
+<p class="para">
+<u >C'est tout simple:</u><br><br>
+<b>1-</b> Si personne ne l'a "buzé" avant vous, en envoyant votre buzcard à un contact (donc forcément par mail), vous en faîtes automatiquement un filleul potentiel.<br><br>
+<b>2-</b> Si depuis cette même adresse mail, il passe un jour commande de buzcard(s), vous recevrez alors un crédit de 10€ HT<br><br>
+</p>
+<p class="para">Donc, une fois atteint les 5 filleuls (4 nouveaux, car vous êtes votre propre filleul), vous pourrez passer commande de 250 buzcards papier à vos couleurs GRATUITEMENT.</p>
+
+<p class="para">Ou opter pour l'envoi d'un chèque de 25€ !</p>
+
+<p class="para">Notre petit doigt nous dit que vous brûlez d'impatience d'importer vos differents carnets d'adresse (XLS/CSV, Gmail) et de leur envoyer un mailing de Mise à Jour pour en faire eux aussi vos filleuls potentiels ; avant que d'autres ne le fassent.</p>
+
+<p class="para">Nous, on dit ça, vous savez... C'est aussi pour vous hein ;)</p>
+		
+	
+			<a class="left" nav-direction="back"  ui-sref="app.contactList" menu-close>Retour</a>
+		</div>
+		 <br><br>
+    </ion-content>
+</ion-view>

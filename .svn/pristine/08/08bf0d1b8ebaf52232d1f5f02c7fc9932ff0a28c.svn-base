@@ -1,0 +1,76 @@
+appContext.controller("ContactShowController", [
+    '$scope',
+    '$state',
+    'ContactsService',
+    '$ionicPlatform',
+    '$cordovaSQLite',
+    '$stateParams',
+    '$rootScope',
+    'cameraService','$ionicHistory',
+    function($scope, $state, ContactsService, $ionicPlatform, $cordovaSQLite,
+            $stateParams, $rootScope, cameraService,$ionicHistory) {
+
+      var db = null;
+
+      $ionicPlatform.ready(function() {
+
+        /**
+         * create/open DB
+         */
+        if (window.cordova) {
+          db = $cordovaSQLite.openDB("buzcard.db"); // device
+        } else {
+          db = window.openDatabase("buzcard.db", '1', 'my', 1024 * 1024 * 10); // browser
+        }
+       // $ionicHistory.clearHistory();
+        getContact();
+      });
+
+      /**
+       * get infos contact by id
+       */
+      function getContact() {
+
+        ContactsService.getContactbyId(db, $stateParams.id, function(result) {
+          tmpContact = result.rows.item(0);
+          $scope.contact = result.rows.item(0);
+          $scope.contact.last_name = removeSlashes(result.rows.item(0).last_name);
+          $scope.contact.first_name = removeSlashes(result.rows.item(0).first_name);
+          $scope.contact.company = removeSlashes(result.rows.item(0).company);
+          $scope.contact.list = removeSlashes(result.rows.item(0).list);
+          var idProfil = $rootScope.idProfil;
+          cameraService.checkExistFile(idProfil, $scope.contact.id + '.jpg',function(url) {
+                    $scope.photoProfil = url; // "img/photo_top_title.jpg";
+                  });
+          $scope.contact.rendez_vous = new Date(result.rows.item(0).rendez_vous * 1000);
+          if (result.rows.item(0).rendez_vous == '1900-01-01'
+                  || result.rows.item(0).rendez_vous == '1970-01-01') {
+
+        	  result.rows.item(0).rendez_vous = '';
+          };
+          if ( Object.prototype.toString.call($scope.contact.rendez_vous) === "[object Date]" ) {
+            // it is a date
+            if ( isNaN( $scope.contact.rendez_vous.getTime() ) ) { 
+              // date is not valid
+              $scope.contact.rendez_vous="";
+            }
+            else {
+              // date is valid
+            }
+          }
+          else {
+            // not a date
+          }
+          console.warn(result.rows.item(0).rendez_vous);
+          console.warn($scope.contact.rendez_vous);
+          // select box groupes
+        });
+      };
+      $scope.edit = function() {
+    	  $ionicHistory.nextViewOptions({
+        	  disableBack: true
+        	});
+        $state.go("app.contactEdit");
+      };
+
+    }]);

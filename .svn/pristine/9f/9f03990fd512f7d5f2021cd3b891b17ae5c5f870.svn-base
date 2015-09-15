@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<items version="2" >
+
+    <item
+        jar="/Users/raniaw/Documents/workspace/Buzcard/platforms/android/libs/com.google.zxing.client.android.captureactivity.jar"
+        jumboMode="false"
+        revision="22.0.1"
+        sha1="92d1409f739c4ebcfbab79b2a11ec63d1bf668f5">
+        <dex dex="/Users/raniaw/Documents/workspace/Buzcard/platforms/android/build/intermediates/pre-dexed/debug/com.google.zxing.client.android.captureactivity-6f51144a74e8bfbcf977529a1926d8964b9c82b9.jar" />
+    </item>
+    <item
+        jar="/Users/raniaw/Documents/workspace/Buzcard/platforms/android/build/intermediates/exploded-aar/android/CordovaLib/unspecified/debug/classes.jar"
+        jumboMode="false"
+        revision="22.0.1"
+        sha1="3bb3e7ae963fcece269a06cb05554e8ee0730abf">
+        <dex dex="/Users/raniaw/Documents/workspace/Buzcard/platforms/android/build/intermediates/pre-dexed/debug/classes-6edbc1c1aed67d70ee84ca61df8e3dadf1fe195e.jar" />
+    </item>
+    <item
+        jar="/Users/raniaw/Documents/workspace/Buzcard/platforms/android/libs/sqlite4java.jar"
+        jumboMode="false"
+        revision="22.0.1"
+        sha1="d6234e08ff4e1607ff5321da2579571f05ff778d">
+        <dex dex="/Users/raniaw/Documents/workspace/Buzcard/platforms/android/build/intermediates/pre-dexed/debug/sqlite4java-f009e869385133ffaef8faafe310f5edb02e0fa5.jar" />
+    </item>
+
+</items>
